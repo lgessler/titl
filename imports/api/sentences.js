@@ -27,18 +27,13 @@ Meteor.methods({
   'sentences.insert'(sentence) {
     checkSentence(sentence);
 
-    if (Meteor.isClient) {
-      console.log("foo")
-    } else {
-      console.log("bar")
-    }
-
     // Make sure the user is logged in before inserting a task
     if (! this.userId) {
       throw new Meteor.Error('not-authorized');
     }
 
-    const currentId = Sentences.findOne({},{sort: {readableId: -1}}).readableId || 1;
+    const lastDoc = Sentences.findOne({},{sort: {readableId: -1}});
+    const currentId = (lastDoc && lastDoc.readableId) || 0;
 
     Sentences.insert({
       ...sentence,

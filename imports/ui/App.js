@@ -48,7 +48,6 @@ function App(props) {
     }
   };
 
-  console.log(props.sentences);
   return (
     <div className={styles.root}>
       <ThemeProvider theme={theme}>
