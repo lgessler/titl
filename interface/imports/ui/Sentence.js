@@ -7,34 +7,40 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import {withStyles, makeStyles} from "@material-ui/styles";
 import grey from '@material-ui/core/colors/grey';
+import red from '@material-ui/core/colors/red';
+import classNames from 'classnames'
 
-const styles = {
+const styles = theme => ({
   card: {
-    paddingTop: "2rem",
-    margin: "1rem",
+    paddingTop: theme.spacing(4),
+    margin: theme.spacing(2),
     position: "relative",
   },
   subtitle: {
     position: "absolute",
-    right: "1rem",
-    top: "0.5rem",
+    right: theme.spacing(2),
+    top: theme.spacing(1),
     color: grey['700']
   },
-  red: {
-    backgroundColor: 'red',
+  spanAnnotation: {
+    borderRadius: '1rem',
+    margin: theme.spacing(-0.3),
+    padding: theme.spacing(0.3),
+  },
+  selected: {
+    backgroundColor: red['300']
   }
-}
+});
 
-function SpanAnnotation(props) {
-  return (
-    <span>{props.text}</span>
-  );
-}
-
-function SpanSelection(props) {
-  return (
-    <span style={{backgroundColor: "red"}}>{props.text}</span>
-  );
+class SpanAnnotation extends Component {
+  render() {
+    return (
+      <span className={classNames(this.props.classes.spanAnnotation,
+                                  this.props.selected ? this.props.classes.selected : undefined)}>
+        {this.props.text}
+      </span>
+    );
+  }
 }
 
 class Sentence extends Component {
@@ -66,11 +72,10 @@ class Sentence extends Component {
     const children = [];
     for (let {begin, end, selected} of spanAnnotations) {
       children.push(sentence.slice(lastIndex, begin));
-      if (selected && begin !== end) {
-        children.push(<SpanSelection text={sentence.slice(begin, end)} key={begin}/>);
-      } else {
-        children.push(<SpanAnnotation text={sentence.slice(begin, end)} key={begin}/>);
-      }
+      children.push(<SpanAnnotation text={sentence.slice(begin, end)}
+                                    key={begin}
+                                    classes={this.props.classes}
+                                    selected={selected && begin !== end} />);
       lastIndex = end;
     }
     children.push(sentence.slice(lastIndex));
@@ -100,7 +105,8 @@ class Sentence extends Component {
 
     if (sel.anchorNode === sel.focusNode && sel.anchorNode.nodeName === "#text" &&
       ((selBegin <= this.state.selBegin && selEnd <= this.state.selEnd)
-        || (selBegin >= this.state.selBegin && selEnd >= this.state.selEnd))) {
+        || (selBegin >= this.state.selBegin && selEnd >= this.state.selEnd))
+      && selBegin !== selEnd) {
       this.setState({selBegin, selEnd});
     }
     sel.empty();
