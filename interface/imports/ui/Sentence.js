@@ -1,7 +1,5 @@
-import React, { Component } from 'react';
-import { Meteor } from 'meteor/meteor';
+import React, { Component } from "react";
 
-import { Sentences } from '../api/sentences.js';
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Menu from "@material-ui/core/Menu";
@@ -89,30 +87,36 @@ class Sentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selBegin: -1,
-      selEnd: -1,
+      selBegin: 0,
+      selEnd: 0
     };
     this.handleSelection = this.handleSelection.bind(this);
     this.clearSelection = this.clearSelection.bind(this);
   }
 
+  //
   computeChildren() {
-    var { sentence, spanAnnotations } = this.props.sentence;
-    // grab a copy
+    // Decompose Sentence Prop
+    let { sentence, spanAnnotations } = this.props.sentence;
+
+    // Grab a Copy of spanAnnotations Array
     spanAnnotations = spanAnnotations.slice(0);
 
-    var lastIndex = 0;
-    if (this.state.selBegin !== this.state.selEnd) {
+    // Set a Highlighted Annotation Based on State's selBegin/End
+    if (this.state.selBegin !== this.state.selEnd)
       spanAnnotations.push({
         begin: this.state.selBegin,
         end: this.state.selEnd,
         selected: true
       });
-    }
-    spanAnnotations.sort(({begin}) => begin);
 
+    // Sort All Annotations Based on Begin
+    spanAnnotations.sort(({ begin }) => begin);
+
+    // Iterate Through All Span Annotations, Highlighting Those Selected
+    let lastIndex = 0;
     const children = [];
-    for (let {begin, end, selected} of spanAnnotations) {
+    for (let { begin, end, selected } of spanAnnotations) {
       children.push(sentence.slice(lastIndex, begin));
       children.push(<SpanAnnotation text={sentence.slice(begin, end)}
                                     key={begin}
@@ -121,47 +125,58 @@ class Sentence extends Component {
       lastIndex = end;
     }
     children.push(sentence.slice(lastIndex));
+
+    // Return The Altered Array
     return children;
   }
 
-  clearSelection (e) {
+  // Clear User's Selectiong
+  clearSelection() {
     window.getSelection().empty();
   }
 
-  handleSelection (e) {
+  handleSelection() {
+    // Grab and Clear User's Selection
     const sel = window.getSelection();
 
-    function lenToLeft (node) {
-      return !node ? 0 : node.textContent.length + lenToLeft(node.previousSibling);
+    // Grab Distance from Beginning to Node, if it Exists, Else 0
+    function lenToLeft(node) {
+      return !node
+        ? 0
+        : node.textContent.length + lenToLeft(node.previousSibling);
     }
+
+    // Grab Highest Parent Node Under Sentence
     function ascend(node) {
-      while (node.parentNode.className !== "sentence") { node = node.parentNode; }
+      while (node.parentNode.className !== "sentence") node = node.parentNode;
       return node;
     }
-    var textLenToLeft = lenToLeft(ascend(sel.anchorNode).previousSibling);
-    var selBegin = sel.anchorOffset + textLenToLeft;
-    var selEnd = sel.focusOffset + textLenToLeft;
-    if (selBegin > selEnd) {
-      [selBegin, selEnd] = [selEnd, selBegin];
-    }
 
-    if (sel.anchorNode === sel.focusNode && sel.anchorNode.nodeName === "#text" &&
-      ((selBegin <= this.state.selBegin && selEnd <= this.state.selEnd)
-        || (selBegin >= this.state.selBegin && selEnd >= this.state.selEnd))
-      && selBegin !== selEnd) {
-      this.setState({selBegin, selEnd});
-    } else {
-      this.setState({selBegin: -1, selEnd: -1});
-    }
-    sel.empty();
+    // Grab Distance from Beginning of Text to Selectiong, and Set Begin/End Accordingly
+    let anchorTextLenToLeft = lenToLeft(ascend(sel.anchorNode).previousSibling);
+    let selBegin = sel.anchorOffset + anchorTextLenToLeft;
+    let focusTextLenToLeft = lenToLeft(ascend(sel.focusNode).previousSibling);
+    let selEnd = sel.focusOffset + focusTextLenToLeft;
+
+    // Interchange Begin and End To Proper Order, if Need Be
+    if (selBegin > selEnd) [selBegin, selEnd] = [selEnd, selBegin];
+
+    // Set Begin and End if in Proper Node
+    this.setState({ selBegin, selEnd });
+
+    // Reset User's Selection
+    this.clearSelection();
   }
 
-  render () {
+  render() {
     const { readableId } = this.props.sentence;
     return (
       <Card className={this.props.classes.card}>
         <CardContent>
-          <Typography variant="subtitle2" className={this.props.classes.subtitle}>
+          <Typography
+            variant="subtitle2"
+            className={this.props.classes.subtitle}
+          >
             {"Sentence #" + readableId}
           </Typography>
           <div
@@ -169,7 +184,8 @@ class Sentence extends Component {
             onKeyUp={this.handleSelection}
             onKeyDown={this.clearSelection}
             onMouseUp={this.handleSelection}
-            onMouseDown={this.clearSelection}>
+            onMouseDown={this.clearSelection}
+          >
             {this.computeChildren()}
           </div>
         </CardContent>
