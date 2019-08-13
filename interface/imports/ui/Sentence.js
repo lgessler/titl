@@ -3,42 +3,38 @@ import React, { Component } from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
-import { withStyles, makeStyles } from "@material-ui/styles";
-import grey from "@material-ui/core/colors/grey";
-import red from "@material-ui/core/colors/red";
-import classNames from "classnames";
+import {withStyles, makeStyles} from "@material-ui/styles";
+import grey from '@material-ui/core/colors/grey';
+import red from '@material-ui/core/colors/red';
+import classNames from 'classnames'
 
 const styles = theme => ({
   card: {
     paddingTop: theme.spacing(4),
     margin: theme.spacing(2),
-    position: "relative"
+    position: "relative",
   },
   subtitle: {
     position: "absolute",
     right: theme.spacing(2),
     top: theme.spacing(1),
-    color: grey["700"]
+    color: grey['700']
   },
   spanAnnotation: {
-    borderRadius: "0.7rem",
+    borderRadius: '0.7rem',
     margin: theme.spacing(-0.3),
-    padding: theme.spacing(0.3)
+    padding: theme.spacing(0.3),
   },
   selected: {
-    backgroundColor: red["300"]
+    backgroundColor: red['300']
   }
 });
 
 class SpanAnnotation extends Component {
   render() {
     return (
-      <span
-        className={classNames(
-          this.props.classes.spanAnnotation,
-          this.props.selected ? this.props.classes.selected : undefined
-        )}
-      >
+      <span className={classNames(this.props.classes.spanAnnotation,
+                                  this.props.selected ? this.props.classes.selected : undefined)}>
         {this.props.text}
       </span>
     );
@@ -80,14 +76,10 @@ class Sentence extends Component {
     const children = [];
     for (let { begin, end, selected } of spanAnnotations) {
       children.push(sentence.slice(lastIndex, begin));
-      children.push(
-        <SpanAnnotation
-          text={sentence.slice(begin, end)}
-          key={begin}
-          classes={this.props.classes}
-          selected={selected && begin !== end}
-        />
-      );
+      children.push(<SpanAnnotation text={sentence.slice(begin, end)}
+                                    key={begin}
+                                    classes={this.props.classes}
+                                    selected={selected && begin !== end} />);
       lastIndex = end;
     }
     children.push(sentence.slice(lastIndex));
