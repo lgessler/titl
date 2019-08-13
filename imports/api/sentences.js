@@ -46,16 +46,30 @@ Meteor.methods({
   'sentences.remove'(sentenceId) {
     Sentences.remove(sentenceId);
   },
-  'sentences.addSpanAnnotation'(sentenceId, type, begin, end) {
-    check(type, String);
+  'sentences.addSpanAnnotation'(sentenceId, begin, end) {
     check(begin, Number);
     check(end, Number);
-    Sentences.update(sentenceId, { $push: {spanAnnotations: {type, begin, end}}});
+    Sentences.update(sentenceId, { $push: {spanAnnotations: {begin, end}}});
   },
-  'sentences.removeSpanAnnotation'(sentenceId, type, begin, end) {
+  'sentences.setSpanAnnotationType'(sentenceId, index, begin, end) {
+    check(index, Number);
     check(type, String);
-    check(begin, Number);
-    check(end, Number);
-    Sentences.update(sentenceId, { $pull: {spanAnnotations: {type, begin, end}}});
+    Sentences.update({
+      _id: sentenceId,
+      begin,
+      end
+    }, {
+      $set: {'spanAnnotations.$': {type}}
+    });
+  },
+  'sentences.removeSpanAnnotation'(sentenceId, begin, end, index) {
+    check(index, Number);
+    Sentences.update({
+      _id: sentenceId,
+      begin,
+      end
+    }, {
+      $pull: {'spanAnnotations.$': {}}
+    });
   },
 });
