@@ -23,7 +23,7 @@ const styles = theme => ({
     color: grey['700']
   },
   spanAnnotation: {
-    borderRadius: '1rem',
+    borderRadius: '0.7rem',
     margin: theme.spacing(-0.3),
     padding: theme.spacing(0.3),
   },
@@ -47,8 +47,8 @@ class Sentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selBegin: 0,
-      selEnd: 0,
+      selBegin: -1,
+      selEnd: -1,
     };
     this.handleSelection = this.handleSelection.bind(this);
     this.clearSelection = this.clearSelection.bind(this);
@@ -108,6 +108,8 @@ class Sentence extends Component {
         || (selBegin >= this.state.selBegin && selEnd >= this.state.selEnd))
       && selBegin !== selEnd) {
       this.setState({selBegin, selEnd});
+    } else {
+      this.setState({selBegin: -1, selEnd: -1});
     }
     sel.empty();
   }
