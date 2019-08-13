@@ -1,103 +1,83 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import { Meteor } from 'meteor/meteor';
-import { withTracker } from 'meteor/react-meteor-data';
+import { Meteor } from "meteor/meteor";
+import { withTracker } from "meteor/react-meteor-data";
+import { createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider, makeStyles } from '@material-ui/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Button from '@material-ui/core/Button';
 
-import { Tasks } from '../api/tasks.js';
-
-import Task from './Task.js';
+import {Sentences} from "../api/sentences";
 import AccountsUIWrapper from './AccountsUIWrapper.js';
+import SentenceList from './SentenceList.js';
+import AddSentence from './AddSentence.js';
 
-// App component - represents the whole app
-class App extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      hideCompleted: false,
-    };
-  }
-
-  handleSubmit(event) {
-    event.preventDefault();
-
-    // Find the text field via the React ref
-    const text = ReactDOM.findDOMNode(this.refs.textInput).value.trim();
-
-    Meteor.call('tasks.insert', text);
-
-    // Clear form
-    ReactDOM.findDOMNode(this.refs.textInput).value = '';
-  }
-
-  toggleHideCompleted() {
-    this.setState({
-      hideCompleted: !this.state.hideCompleted,
-    });
-  }
-
-  renderTasks() {
-    let filteredTasks = this.props.tasks;
-    if (this.state.hideCompleted) {
-      filteredTasks = filteredTasks.filter(task => !task.checked);
+function App(props) {
+  const theme = createMuiTheme();
+  const useStyles = makeStyles(theme => ({
+    root: {
+      flexGrow: 1,
+    },
+    toolbar: {
+      display: "flex",
+      flexDirection: "row"
+    },
+    loginButton: {
+      marginLeft: "auto"
+    },
+    loginBackground: {
+      width: "100%",
+      height: "100%"
+    },
+    centeringDiv: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    wrapper: {
+      display: "flex",
+      marginTop: "25%"
     }
-    return filteredTasks.map((task) => {
-      const currentUserId = this.props.currentUser && this.props.currentUser._id;
-      const showPrivateButton = task.owner === currentUserId;
+  }));
+  const styles = useStyles();
 
-      return (
-        <Task
-          key={task._id}
-          task={task}
-          showPrivateButton={showPrivateButton}
-        />
-      );
-    });
-  }
+  const logInOrOut = (e) => {
+    e.preventDefault();
+    if (props.currentUser) {
+      Meteor.logout();
+    }
+  };
 
-  render() {
-    return (
-      <div className="container">
-        <header>
-          <h1>Todo List ({this.props.incompleteCount})</h1>
-
-          <label className="hide-completed">
-            <input
-              type="checkbox"
-              readOnly
-              checked={this.state.hideCompleted}
-              onClick={this.toggleHideCompleted.bind(this)}
-            />
-            Hide Completed Tasks
-          </label>
-
-          <AccountsUIWrapper />
-
-          { this.props.currentUser ?
-            <form className="new-task" onSubmit={this.handleSubmit.bind(this)} >
-              <input
-                type="text"
-                ref="textInput"
-                placeholder="Type to add new tasks"
-              />
-            </form> : ''
-          }
-        </header>
-
-        <ul>
-          {this.renderTasks()}
-        </ul>
-      </div>
-    );
-  }
+  console.log(props.sentences);
+  return (
+    <div className={styles.root}>
+      <ThemeProvider theme={theme}>
+        <AppBar position="static">
+          <Toolbar variant="dense" className={styles.toolbar}>
+            <Button color="inherit" size="small" className={styles.loginButton} onClick={logInOrOut}>
+              {props.currentUser ? "Log Out" : ""}
+            </Button>
+          </Toolbar>
+        </AppBar>
+        {props.currentUser ?
+          <SentenceList sentences={props.sentences} currentUser={props.currentUser} /> :
+          <div className={styles.centeringDiv}>
+            <div className={styles.wrapper}>
+              <AccountsUIWrapper />
+            </div>
+          </div>
+        }
+        <AddSentence />
+      </ThemeProvider>
+    </div>
+  );
 }
 
 export default withTracker(() => {
-  Meteor.subscribe('tasks');
+  Meteor.subscribe('sentences');
 
   return {
-    tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch(),
-    incompleteCount: Tasks.find({ checked: { $ne: true } }).count(),
-    currentUser: Meteor.user(),
+    sentences: Sentences.find({}, {sort: {readableId: 1}}).fetch(),
+    currentUser: Meteor.user()
   };
 })(App);
