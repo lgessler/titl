@@ -5,11 +5,12 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
 import grey from '@material-ui/core/colors/grey';
-import red from '@material-ui/core/colors/red';
+
+import SpanAnnotation from "./SpanAnnotation";
 
 const styles = theme => ({
   card: {
-    paddingTop: theme.spacing(4),
+    paddingTop: theme.spacing(5),
     margin: theme.spacing(2),
     position: "relative"
   },
@@ -19,9 +20,6 @@ const styles = theme => ({
     top: theme.spacing(1),
     color: grey["700"]
   },
-  selected: {
-    backgroundColor: red["300"]
-  }
 });
 
 class Sentence extends Component {
@@ -60,9 +58,10 @@ class Sentence extends Component {
       children.push(
         <SpanAnnotation
           text={sentence.slice(begin, end)}
+          begin={begin}
+          end={end}
           key={begin}
-          classes={this.props.classes}
-          selected={selected && begin !== end}
+          clearSelected={selected && begin !== end && (() => this.setState({begin: 0, end: 0}))}
         />
       );
       lastIndex = end;
