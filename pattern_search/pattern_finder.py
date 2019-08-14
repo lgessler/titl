@@ -67,6 +67,10 @@ def main(args):
             print(norm_ln.strip('\n'))
     if len(matches) == 0:
         print(NO_MATCH)
+    if args.output:
+        with open(args.output, 'w') as f:
+            for ln in matches:
+                f.write(ln)
     return matches
 
 
@@ -88,6 +92,8 @@ if __name__ == '__main__':
                         help='string to match')
     parser.add_argument('-c', '--corpus',
                         help='corpus to find matches in')
+    parser.add_argument('-o', '--output',
+                        help='path to the output file')
     args = parser.parse_args()
 
     main(args)
