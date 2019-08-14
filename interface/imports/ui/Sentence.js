@@ -1,10 +1,11 @@
 import React, { Component } from "react";
+import Meteor from 'meteor/meteor';
 
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Menu from "@material-ui/core/Menu";
 import Typography from "@material-ui/core/Typography";
-import {withStyles, makeStyles} from "@material-ui/styles";
+import { withStyles } from "@material-ui/styles";
 import grey from '@material-ui/core/colors/grey';
 import red from '@material-ui/core/colors/red';
 import classNames from 'classnames'
@@ -62,10 +63,10 @@ class SpanAnnotation extends Component {
   }
 
   render() {
-    const types = ["A", "B", "C"];
+    const types = Meteor.settings.public.spanAnnotationTypes;
 
     return (
-      <React.Fragment>
+      <>
         <span className={classNames(this.props.classes.spanAnnotation,
                                     this.props.selected ? this.props.classes.selected : undefined)}
               onClick={this.handleClick}>
@@ -78,7 +79,7 @@ class SpanAnnotation extends Component {
             <MenuItem  />
           )}
         </Menu>
-      </React.Fragment>
+      </>
     );
   }
 }
@@ -130,7 +131,7 @@ class Sentence extends Component {
     return children;
   }
 
-  // Clear User's Selectiong
+  // Clear User's Selecting
   clearSelection() {
     window.getSelection().empty();
   }
