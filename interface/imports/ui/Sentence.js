@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Meteor from 'meteor/meteor';
+import { Meteor } from 'meteor/meteor';
 
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
