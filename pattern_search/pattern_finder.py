@@ -16,6 +16,8 @@ in a variety of ways, etc.)
 import argparse
 import textwrap
 import re
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 
 
 # REPORT FORMATTING PARAMETERS ################################################
@@ -48,6 +50,45 @@ def normalize(s):
     norm_s = s.lower()
     return norm_s
 
+# MATCHING FUNCTIONS ##########################################################
+
+def simpleMatch(corpus, string):
+    matches = []
+    for ln in corpus:
+        norm_ln = normalize(ln)
+        match = re.search(string, norm_ln)
+        if match:
+            matches.append(ln)
+            print(norm_ln.strip('\n'))
+    return matches
+
+def fuzzyMatch(corpus, string):
+    matches = []
+    for ln in corpus:
+        norm_ln = normalize(ln)
+        # ratio = fuzz.ratio(string, norm_ln)
+        partialRatio = fuzz.partial_ratio(string, norm_ln)
+        tokenSetRatio = fuzz.token_set_ratio(string, norm_ln)
+
+        if partialRatio >= 65:
+            matches.append(ln)
+            print(partialRatio, norm_ln.strip('\n'))
+
+        elif tokenSetRatio >= 65:
+            print("----------- token set ratio ------------")
+            matches.append(ln)
+            print(tokenSetRatio, norm_ln.strip('\n'))
+            
+    return matches
+
+def tryProcess(corpus, string):
+    ''' process module from fuzzywuzzy -seems to score differently from partialRatio & tokenSetRatio '''
+    print(len(corpus))
+    matches = process.extract(string, corpus)
+    print(matches)
+        
+        
+
 
 # MAIN FUNCTIONS ##############################################################
 '''
@@ -58,13 +99,19 @@ def main(args):
     with open(args.corpus,'r') as f:
         corpus = f.readlines()
     s = normalize(args.string)
-    matches = []
-    for ln in corpus:
-        norm_ln = normalize(ln)
-        match = re.search(s,norm_ln)
-        if match:
-            matches.append(ln)
-            print(norm_ln.strip('\n'))
+    if args.fuzzy == True:
+        matches = fuzzyMatch(corpus, s)
+    else:
+        matches = simpleMatch(corpus, s)
+#    print("testing process function from fuzzywuzzy")
+#    tryProcess(corpus, s)
+    # matches = []
+    # for ln in corpus:
+    #     norm_ln = normalize(ln)
+    #     match = re.search(s,norm_ln)
+    #     if match:
+    #         matches.append(ln)
+    #         print(norm_ln.strip('\n'))
     if len(matches) == 0:
         print(NO_MATCH)
     return matches
@@ -88,6 +135,9 @@ if __name__ == '__main__':
                         help='string to match')
     parser.add_argument('-c', '--corpus',
                         help='corpus to find matches in')
+    parser.add_argument('-f', '--fuzzy', action='store_true',
+                          help='select partial matches')
     args = parser.parse_args()
 
     main(args)
+    
