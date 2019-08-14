@@ -30,7 +30,7 @@ const styles = theme => ({
   }
 });
 
-class Sentence extends Component {
+class SpanSentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -40,9 +40,9 @@ class Sentence extends Component {
     };
   }
 
-  // Returns HTML for Displaying Sentence
+  // Returns HTML for Displaying SpanSentence
   computeChildren() {
-    // Decompose Sentence Prop
+    // Decompose SpanSentence Prop
     let { sentence, spanAnnotations } = this.props.sentence;
 
     // Grab a Copy of spanAnnotations Array
@@ -96,12 +96,16 @@ class Sentence extends Component {
   handleSelection = () => {
     // Grab Distance from Beginning to Node, if it Exists, Else 0
     function lenToLeft(node) {
-      return !node
-        ? 0
-        : node.textContent.length + lenToLeft(node.previousSibling);
+      if (!node) {
+        return 0;
+      }
+      const findToolbar = node => node && node.lastChild && node.lastChild.nodeName === "DIV" && node.lastChild;
+      const toolbar = findToolbar(node);
+      const textLength = toolbar ? node.textContent.length - toolbar.textContent.length : node.textContent.length;
+      return textLength + lenToLeft(node.previousSibling);
     }
 
-    // Grab Highest Parent Node Under Sentence
+    // Grab Highest Parent Node Under SpanSentence
     const ascend = node => {
       while (
         node &&
@@ -185,7 +189,7 @@ class Sentence extends Component {
             variant="subtitle2"
             className={this.props.classes.subtitle}
           >
-            {"Sentence #" + readableId}
+            {"SpanSentence #" + readableId}
           </Typography>
           <div
             className="sentence"
@@ -200,4 +204,4 @@ class Sentence extends Component {
   }
 }
 
-export default withStyles(styles)(Sentence);
+export default withStyles(styles)(SpanSentence);

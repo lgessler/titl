@@ -1,6 +1,8 @@
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
 import { check, Match } from "meteor/check";
+import {TSV} from 'tsv';
+import {fs} from 'fs';
 
 export const Sentences = new Mongo.Collection("sentences");
 
@@ -48,6 +50,21 @@ Meteor.methods({
   "sentences.remove"(sentenceId) {
     Sentences.remove(sentenceId);
   },
+  "sentences.addAnnotation"(sentenceId, name, value) {
+    Sentence.update(sentenceId, {
+      $push: {name, value}
+    });
+  },
+  "sentences.removeAnnotation"(sentenceId, name, value) {
+    Sentences.update(
+      {
+        _id: sentenceId,
+      },
+      {
+        $pull: { "annotations": {name, value} }
+      }
+    );
+  },
   "sentences.addSpanAnnotation"(sentenceId, begin, end, type) {
     check(sentenceId, String);
     check(begin, Number);
@@ -70,5 +87,15 @@ Meteor.methods({
         $pull: { "spanAnnotations": {begin, end, type} }
       }
     );
+  },
+  "sentences.importFromTsv"(url, filename) {
+    url = url || Meteor.settings.public.defaultUrl;
+    if (Meteor.isServer) {
+      HTTP.call('GET', url + '/' + filename, {}, (err, resp) => {
+        console.log(err, resp);
+        const tsv = TSV.parse(resp);
+        console.log(tsv);
+      });
+    }
   }
 });
