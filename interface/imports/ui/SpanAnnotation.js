@@ -18,41 +18,51 @@ const styles = theme => ({
     position: "relative",
     borderRadius: '0.7rem',
     margin: theme.spacing(-0.3),
-    padding: theme.spacing(0.3)
+    padding: theme.spacing(0.3),
+    '&:hover $savedToolbar': {
+      visibility: 'visible'
+    }
   },
   selected: {
     backgroundColor: red["300"]
   },
+  saved: {
+    backgroundColor: green["300"]
+  },
   toolbar: {
     position: "absolute",
-    bottom: "calc(105%)",
+    bottom: "calc(100%)",
     left: "50%",
-    display: "flex",
-    flexDirection: "row",
-    spaceBetween: "1.2"
   },
   typeControlBackground: {
     marginRight: theme.spacing(0.5),
     display: "flex",
     paddingLeft: theme.spacing(0.5),
-    paddingRight: theme.spacing(0.5)
+    paddingRight: theme.spacing(0.5),
+    flexDirection: "row",
   },
   typeControl: {
     minWidth: "100px",
   },
   toolbarButton: {
     display: "flex",
-  }
+  },
+  savedToolbar: {
+    visibility: "hidden"
+  },
 });
 
 class SpanAnnotation extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: "",
+      type: this.props.type || "",
+      toolbarVisible: false
     };
     this.handleChange = this.handleChange.bind(this);
     this.stopBubbling = this.stopBubbling.bind(this);
+    this.saveAndClear = this.saveAndClear.bind(this);
+    this.deleteAnnotation = this.deleteAnnotation.bind(this);
   }
 
   handleChange(e) {
@@ -65,6 +75,27 @@ class SpanAnnotation extends Component {
     e.stopPropagation();
   }
 
+  saveAndClear(e) {
+    Meteor.call(
+      'sentences.addSpanAnnotation',
+      this.props.sentenceId,
+      this.props.begin,
+      this.props.end,
+      this.state.type,
+    );
+    this.props.clearSelected();
+  }
+
+  deleteAnnotation(e) {
+    Meteor.call(
+      'sentences.removeSpanAnnotation',
+      this.props.sentenceId,
+      this.props.begin,
+      this.props.end,
+      this.state.type,
+    )
+  }
+
   render() {
     const types = Meteor.settings.public.spanAnnotationTypes;
 
@@ -75,11 +106,11 @@ class SpanAnnotation extends Component {
       }
     });
 
-    const toolbar = (
-      <div className={this.props.classes.toolbar}>
-        <Paper onMouseUp={this.stopBubbling}
-               onKeyUp={this.stopBubbling}
-               className={this.props.classes.typeControlBackground}>
+    const selectedToolbar = (
+      <div className={this.props.classes.toolbar}
+           onMouseUp={this.stopBubbling}
+           onKeyUp={this.stopBubbling}>
+        <Paper className={this.props.classes.typeControlBackground}>
           <FormControl className={this.props.classes.typeControl}>
             <InputLabel htmlFor="type">Type</InputLabel>
             <Select
@@ -93,24 +124,70 @@ class SpanAnnotation extends Component {
               {types.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
             </Select>
           </FormControl>
+          <ThemeProvider theme={redGreenTheme}>
+            <IconButton color="primary"
+                        size="medium"
+                        aria-label="add"
+                        className={this.props.classes.toolbarButton}
+                        disabled={!this.state.type}
+                        onClick={this.saveAndClear}>
+              <CheckIcon />
+            </IconButton>
+            <IconButton color="secondary"
+                        size="medium"
+                        aria-label="add"
+                        className={this.props.classes.toolbarButton}
+                        onClick={this.props.clearSelected}>
+              <CancelIcon />
+            </IconButton>
+          </ThemeProvider>
         </Paper>
-        <ThemeProvider theme={redGreenTheme}>
-          <IconButton color="primary" size="medium" aria-label="add" className={this.props.classes.toolbarButton}>
-            <CheckIcon />
-          </IconButton>
-          <IconButton color="secondary" size="medium" aria-label="add" className={this.props.classes.toolbarButton}>
-            <CancelIcon />
-          </IconButton>
-        </ThemeProvider>
       </div>
     );
 
-    //const toolbar = toolbar; //!this.props.clearSelected ? null : menu;
+    const savedToolbar = (
+      <div className={
+        classNames(this.props.classes.toolbar, /*this.state.toolbarVisible ? this.props.classes.savedToolbarVisible : this.props.classes.savedToolbar*/ this.props.classes.savedToolbar)
+      }
+           onMouseUp={this.stopBubbling}
+           onKeyUp={this.stopBubbling}>
+        <Paper className={this.props.classes.typeControlBackground}>
+          <FormControl className={this.props.classes.typeControl}>
+            <InputLabel htmlFor="type">Type</InputLabel>
+            <Select
+              value={this.state.type}
+              onChange={this.handleChange}
+              inputProps={{
+                name: 'type',
+                id: 'type',
+              }}
+              disabled
+            >
+              {types.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <ThemeProvider theme={redGreenTheme}>
+            <IconButton color="secondary"
+                        size="medium"
+                        aria-label="add"
+                        className={this.props.classes.toolbarButton}
+                        onClick={this.deleteAnnotation}>
+              <CancelIcon />
+            </IconButton>
+          </ThemeProvider>
+        </Paper>
+      </div>
+    );
+
+    const toolbar = this.props.clearSelected ? selectedToolbar : savedToolbar;
 
     return (
       <>
         <span className={classNames(this.props.classes.spanAnnotation,
-          this.props.clearSelected ? this.props.classes.selected : undefined)}>
+          this.props.clearSelected ? this.props.classes.selected : this.props.classes.saved)}
+              //onMouseEnter={() => this.setState({toolbarVisible: true})}
+              //onMouseLeave={() => this.setState({toolbarVisible: false})}
+        >
           {this.props.text}
           {toolbar}
         </span>

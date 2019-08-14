@@ -14,7 +14,8 @@ const styles = theme => ({
   card: {
     paddingTop: theme.spacing(5),
     margin: theme.spacing(2),
-    position: "relative"
+    position: "relative",
+    overflow: "visible",
   },
   subtitle: {
     position: "absolute",
@@ -55,15 +56,22 @@ class Sentence extends Component {
     // Iterate Through All Span Annotations, Highlighting Those Selected
     let lastIndex = 0;
     const children = [];
-    for (let { begin, end, selected } of spanAnnotations) {
+    const clearSelected = () => {
+      this.setState({selBegin: 0, selEnd: 0});
+    };
+    for (let { begin, end, type, selected } of spanAnnotations) {
       children.push(sentence.slice(lastIndex, begin));
       children.push(
         <SpanAnnotation
           text={sentence.slice(begin, end)}
+          sentenceId={this.props.sentence._id}
           begin={begin}
           end={end}
           key={begin}
-          clearSelected={selected && begin !== end && (() => this.setState({begin: 0, end: 0}))}
+          type={type}
+          clearSelected={selected
+                         && begin !== end
+                         && clearSelected}
         />
       );
       lastIndex = end;

@@ -57,7 +57,7 @@ Meteor.methods({
       $push: { spanAnnotations: { begin, end, type } }
     });
   },
-  "sentences.removeSpanAnnotation"(sentenceId, begin, end, type, index) {
+  "sentences.removeSpanAnnotation"(sentenceId, begin, end, type) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);

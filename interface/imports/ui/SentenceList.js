@@ -10,7 +10,7 @@ const useStyles = makeStyles(theme => ({
   zeroState: {
     marginTop: theme.spacing(5),
     textAlign: "center"
-  }
+  },
 }));
 
 export default function SentenceList(props) {
@@ -22,7 +22,7 @@ export default function SentenceList(props) {
   );
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="sm">
       {props.sentences.length === 0
         ? zeroState
         : props.sentences.map(s => {
