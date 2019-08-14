@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+import DeleteIcon from "@material-ui/icons/Add";
+import Fab from "@material-ui/core/Fab";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -108,25 +110,42 @@ class Sentence extends Component {
     }
 
     // Grab Highest Parent Node Under Sentence
-    function ascend(node) {
-      while (node.parentNode && node.parentNode.className !== "sentence")
+    const ascend = node => {
+      while (
+        node.parentNode.className !== "sentence" &&
+        !node.parentNode.className.includes(this.props.classes.card)
+      )
         node = node.parentNode;
       return node;
-    }
+    };
 
     // Grab and Clear User's Selection
     const sel = window.getSelection();
 
+    // Set Begin/End Accordingly by Offset and Length to Left of Original Text
+    let selBegin =
+      sel.anchorOffset + lenToLeft(ascend(sel.anchorNode).previousSibling);
+    let selEnd =
+      sel.focusOffset + lenToLeft(ascend(sel.focusNode).previousSibling);
+
     // Only Set Selection if Anchor and Focus Has Direct Parent that is Ancestor of the Other
     if (
-      sel.focusNode.parentNode.contains(sel.anchorNode) ||
-      sel.anchorNode.parentNode.contains(sel.focusNode)
+      ascend(sel.focusNode).parentNode.contains(sel.anchorNode) ||
+      ascend(sel.anchorNode).parentNode.contains(sel.focusNode)
     ) {
-      // Set Begin/End Accordingly by Offset and Length to Left of Original Text
-      let selBegin =
-        sel.anchorOffset + lenToLeft(ascend(sel.anchorNode).previousSibling);
-      let selEnd =
-        sel.focusOffset + lenToLeft(ascend(sel.focusNode).previousSibling);
+      // If Selection is in Card But Not On Annotation Text, Set Corresponding Begin or End to 0
+      if (
+        ascend(sel.anchorNode).parentNode.className.includes(
+          this.props.classes.card
+        )
+      )
+        selBegin = 0;
+      if (
+        ascend(sel.focusNode).parentNode.className.includes(
+          this.props.classes.card
+        )
+      )
+        selEnd = 0;
 
       // Interchange Begin and End To Proper Order, if Need Be
       if (selBegin > selEnd) [selBegin, selEnd] = [selEnd, selBegin];
@@ -144,6 +163,7 @@ class Sentence extends Component {
       <Card
         className={this.props.classes.card}
         onMouseUp={this.handleSelection}
+        onMouseDown={this.clearSelection}
       >
         <CardContent>
           <Typography
@@ -156,7 +176,6 @@ class Sentence extends Component {
             className="sentence"
             onKeyUp={this.handleSelection}
             onKeyDown={this.clearSelection}
-            onMouseDown={this.clearSelection}
           >
             {this.computeChildren()}
           </div>
