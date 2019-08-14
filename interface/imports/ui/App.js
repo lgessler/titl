@@ -1,22 +1,22 @@
-import React, { Component } from 'react';
+import React from "react";
 import { Meteor } from "meteor/meteor";
 import { withTracker } from "meteor/react-meteor-data";
-import { createMuiTheme } from '@material-ui/core/styles';
-import { ThemeProvider, makeStyles } from '@material-ui/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Button from '@material-ui/core/Button';
+import { createMuiTheme } from "@material-ui/core/styles";
+import { ThemeProvider, makeStyles } from "@material-ui/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Button from "@material-ui/core/Button";
 
-import {Sentences} from "../api/sentences";
-import AccountsUIWrapper from './AccountsUIWrapper.js';
-import SentenceList from './SentenceList.js';
-import AddSentence from './AddSentence.js';
+import { Sentences } from "../api/sentences";
+import AccountsUIWrapper from "./AccountsUIWrapper.js";
+import SentenceList from "./SentenceList.js";
+import AddSentence from "./AddSentence.js";
 
 function App(props) {
   const theme = createMuiTheme();
-  const useStyles = makeStyles(theme => ({
+  const useStyles = makeStyles(() => ({
     root: {
-      flexGrow: 1,
+      flexGrow: 1
     },
     toolbar: {
       display: "flex",
@@ -25,14 +25,10 @@ function App(props) {
     loginButton: {
       marginLeft: "auto"
     },
-    loginBackground: {
-      width: "100%",
-      height: "100%"
-    },
     centeringDiv: {
       display: "flex",
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "center"
     },
     wrapper: {
       display: "flex",
@@ -41,31 +37,36 @@ function App(props) {
   }));
   const styles = useStyles();
 
-  const logInOrOut = (e) => {
-    e.preventDefault();
-    if (props.currentUser) {
-      Meteor.logout();
-    }
-  };
-
   return (
     <div className={styles.root}>
       <ThemeProvider theme={theme}>
         <AppBar position="static">
           <Toolbar variant="dense" className={styles.toolbar}>
-            <Button color="inherit" size="small" className={styles.loginButton} onClick={logInOrOut}>
+            <Button
+              color="inherit"
+              size="small"
+              className={styles.loginButton}
+              onClick={e => {
+                e.preventDefault();
+                if (props.currentUser) Meteor.logout();
+              }}
+            >
               {props.currentUser ? "Log Out" : ""}
             </Button>
           </Toolbar>
         </AppBar>
-        {props.currentUser ?
-          <SentenceList sentences={props.sentences} currentUser={props.currentUser} /> :
+        {props.currentUser ? (
+          <SentenceList
+            sentences={props.sentences}
+            currentUser={props.currentUser}
+          />
+        ) : (
           <div className={styles.centeringDiv}>
             <div className={styles.wrapper}>
               <AccountsUIWrapper />
             </div>
           </div>
-        }
+        )}
         <AddSentence />
       </ThemeProvider>
     </div>
@@ -73,10 +74,10 @@ function App(props) {
 }
 
 export default withTracker(() => {
-  Meteor.subscribe('sentences');
+  Meteor.subscribe("sentences");
 
   return {
-    sentences: Sentences.find({}, {sort: {readableId: 1}}).fetch(),
+    sentences: Sentences.find({}, { sort: { readableId: 1 } }).fetch(),
     currentUser: Meteor.user()
   };
 })(App);
