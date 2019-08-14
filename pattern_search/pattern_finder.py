@@ -1,5 +1,5 @@
 '''
-Started by Olga Zamaraeva
+Contributors: Olga Zamaraeva, Alexis Palmer
 olzama@uw.edu
 
 For the Pittsburgh workshop on Technology for Language Documentation and Revitalization
@@ -23,10 +23,10 @@ from fuzzywuzzy import process
 # REPORT FORMATTING PARAMETERS ################################################
 
 MAX_LINE_WIDTH = 120
-RESULT_WIDTH = 13 # Reserved for 'PARTIAL MATCH'
-MATCH           = 'MATCH'
-PARTIAL_MATCH   = 'PARTIAL MATCH' # to use with editdistance or something similar
-NO_MATCH      = 'NO MATCH'
+RESULT_WIDTH   = 13 # Reserved for 'PARTIAL MATCH'
+MATCH          = 'MATCH'
+PARTIAL_MATCH  = 'PARTIAL MATCH' # to use with editdistance or something similar
+NO_MATCH       = 'NO MATCH'
 
 
 # EXCEPTIONS ##################################################################
@@ -36,13 +36,23 @@ class PatternFinderError(Exception):
 
 # VALIDATION OF ARGUMENTS
 
-def validate_arguments(args):
+def validate_arguments(args,parser):
+    success = True
     if not args.string:
-        raise PatternFinderError('Please provide the string to search for.')
+        print('Please provide the string to search for.')
+        success = False
     if not args.corpus:
-        raise PatternFinderError('Please provide a corpus to search in.')
+        print('Please provide a corpus to search in.')
+        success = False
     if args.string == '*':
-        raise PatternFinderError('Don\'t do that (use * as your pattern)' )
+        print('Don\'t do that (use * as your pattern)' )
+        success = False
+    if not (args.words or args.morphemes or args.discont or args.sentence):
+        print('Default: Treating the entire sentence as pattern.')
+    if not success:
+        print('\n')
+        parser.print_help()
+        exit(1)
 
 # PREPROCESSING OF DATA
 
@@ -86,16 +96,12 @@ def tryProcess(corpus, string):
     print(len(corpus))
     matches = process.extract(string, corpus)
     print(matches)
-        
-        
-
 
 # MAIN FUNCTIONS ##############################################################
 '''
 Return a list of sentences where a match was found.
 '''
 def main(args):
-    validate_arguments(args)
     with open(args.corpus,'r') as f:
         corpus = f.readlines()
     s = normalize(args.string)
@@ -137,13 +143,27 @@ if __name__ == '__main__':
         '''))
     parser.add_argument('-s', '--string',
                         help='string to match')
+    parser.add_argument('-w', '--words', action='store_true',
+                        help='search for one of more full contiguous words')
+    parser.add_argument('-m', '--morphemes', action='store_true',
+                        help='search for one or more contiguous morphemes')
+    parser.add_argument('-d', '--discont', action='store_true',
+                        help='search for a discontinuous span')
+    parser.add_argument('-l', '--sentence', action='store_false',
+                        help='search for an entire sentence')
     parser.add_argument('-c', '--corpus',
                         help='corpus to find matches in')
     parser.add_argument('-o', '--output',
                         help='path to the output file')
     parser.add_argument('-f', '--fuzzy', action='store_true',
                           help='select partial matches')
+    '''
+    -w word
+    -m morpheme
+    -d discontinuous span
+    -l sentence
+    '''
     args = parser.parse_args()
-
+    validate_arguments(args,parser)
     main(args)
     
