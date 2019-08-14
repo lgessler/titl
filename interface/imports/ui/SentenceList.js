@@ -10,7 +10,7 @@ const useStyles = makeStyles(theme => ({
   zeroState: {
     marginTop: theme.spacing(5),
     textAlign: "center"
-  },
+  }
 }));
 
 export default function SentenceList(props) {
@@ -25,9 +25,11 @@ export default function SentenceList(props) {
     <Container maxWidth="sm">
       {props.sentences.length === 0
         ? zeroState
-        : props.sentences.map(s => {
-            return <Sentence sentence={s} key={s._id} />;
-          })}
+        : props.sentences
+            .sort((s1, s2) => (s1.zScore <= s2.zScore ? s1 : s2))
+            .map(s => {
+              return <Sentence sentence={s} key={s._id} />;
+            })}
     </Container>
   );
 }

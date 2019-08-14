@@ -21,7 +21,8 @@ function checkSentence(sentence) {
         begin: Number,
         end: Number
       }
-    ]
+    ],
+    zScore: Number
   });
 }
 
@@ -64,10 +65,10 @@ Meteor.methods({
     check(type, String);
     Sentences.update(
       {
-        _id: sentenceId,
+        _id: sentenceId
       },
       {
-        $pull: { "spanAnnotations": {begin, end, type} }
+        $pull: { spanAnnotations: { begin, end, type } }
       }
     );
   }
