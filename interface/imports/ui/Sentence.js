@@ -6,9 +6,8 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import grey from "@material-ui/core/colors/grey";
-import red from "@material-ui/core/colors/red";
-import classNames from "classnames";
+import grey from '@material-ui/core/colors/grey';
+import red from '@material-ui/core/colors/red';
 
 const styles = theme => ({
   card: {
@@ -22,30 +21,10 @@ const styles = theme => ({
     top: theme.spacing(1),
     color: grey["700"]
   },
-  spanAnnotation: {
-    borderRadius: "0.7rem",
-    margin: theme.spacing(-0.3),
-    padding: theme.spacing(0.3)
-  },
   selected: {
     backgroundColor: red["300"]
   }
 });
-
-class SpanAnnotation extends Component {
-  render() {
-    return (
-      <span
-        className={classNames(
-          this.props.classes.spanAnnotation,
-          this.props.selected ? this.props.classes.selected : undefined
-        )}
-      >
-        {this.props.text}
-      </span>
-    );
-  }
-}
 
 class Sentence extends Component {
   constructor(props) {
@@ -96,7 +75,7 @@ class Sentence extends Component {
     return children;
   }
 
-  // Clear User's Selectiong
+  // Clear User's Selecting
   clearSelection() {
     window.getSelection().empty();
   }
