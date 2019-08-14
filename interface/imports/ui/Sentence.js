@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
-import DeleteIcon from "@material-ui/icons/Delete";
-import Fab from "@material-ui/core/Fab";
+import CancelIcon from "@material-ui/icons/Cancel";
+import IconButton from "@material-ui/core/IconButton";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -25,12 +25,8 @@ const styles = theme => ({
   },
   remove: {
     position: "absolute",
-    right: theme.spacing(1),
-    top: theme.spacing(1)
-  },
-  icon: {
-    width: "20px",
-    height: "20px"
+    right: "-15px",
+    top: "-15px"
   }
 });
 
@@ -175,16 +171,15 @@ class Sentence extends Component {
       >
         <CardContent>
           {this.state.deleteHidden ? null : (
-            <Fab
+            <IconButton
               size="small"
-              color="secondary"
               className={this.props.classes.remove}
               onClick={() => {
                 Meteor.call("sentences.remove", this.props.sentence._id);
               }}
             >
-              <DeleteIcon className={this.props.classes.icon} />
-            </Fab>
+              <CancelIcon />
+            </IconButton>
           )}
           <Typography
             variant="subtitle2"
