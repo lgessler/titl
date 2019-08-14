@@ -1,12 +1,15 @@
 import React, { Component } from "react";
+import Meteor from 'meteor/meteor';
 
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import Menu from "@material-ui/core/Menu";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import grey from "@material-ui/core/colors/grey";
-import red from "@material-ui/core/colors/red";
-import classNames from "classnames";
+import grey from '@material-ui/core/colors/grey';
+import red from '@material-ui/core/colors/red';
+import classNames from 'classnames'
+import MenuItem from "@material-ui/core/MenuItem";
 
 const styles = theme => ({
   card: {
@@ -21,7 +24,8 @@ const styles = theme => ({
     color: grey["700"]
   },
   spanAnnotation: {
-    borderRadius: "0.7rem",
+    position: "relative",
+    borderRadius: '0.7rem',
     margin: theme.spacing(-0.3),
     padding: theme.spacing(0.3)
   },
@@ -31,16 +35,51 @@ const styles = theme => ({
 });
 
 class SpanAnnotation extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      anchor: null
+    };
+
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick(e) {
+    this.setState({
+      anchor: e.currentTarget
+    })
+  }
+
+  handleClose(e) {
+    this.setState({
+      anchor: null
+    });
+  }
+
+  menuItemClickedMaker(type) {
+    return function(menuItemClicked) {
+
+    }
+  }
+
   render() {
+    const types = Meteor.settings.public.spanAnnotationTypes;
+
     return (
-      <span
-        className={classNames(
-          this.props.classes.spanAnnotation,
-          this.props.selected ? this.props.classes.selected : undefined
-        )}
-      >
-        {this.props.text}
-      </span>
+      <>
+        <span className={classNames(this.props.classes.spanAnnotation,
+                                    this.props.selected ? this.props.classes.selected : undefined)}
+              onClick={this.handleClick}>
+          {this.props.text}
+        </span>
+        <Menu id="type-menu"
+              anchorEl={this.state.anchor}
+              onClickAway={this.handleClose}>
+          {types.map(t =>
+            <MenuItem  />
+          )}
+        </Menu>
+      </>
     );
   }
 }
@@ -94,7 +133,7 @@ class Sentence extends Component {
     return children;
   }
 
-  // Clear User's Selectiong
+  // Clear User's Selecting
   clearSelection() {
     window.getSelection().empty();
   }

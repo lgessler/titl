@@ -1,13 +1,13 @@
-import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
-import { check, Match } from 'meteor/check';
+import { Meteor } from "meteor/meteor";
+import { Mongo } from "meteor/mongo";
+import { check, Match } from "meteor/check";
 
-export const Sentences = new Mongo.Collection('sentences');
+export const Sentences = new Mongo.Collection("sentences");
 
 if (Meteor.isServer) {
   // This code only runs on the server
   // Only publish tasks that are public or belong to the current user
-  Meteor.publish('sentences', function sentencesPublication() {
+  Meteor.publish("sentences", function sentencesPublication() {
     return Sentences.find({});
   });
 }
@@ -15,24 +15,26 @@ if (Meteor.isServer) {
 function checkSentence(sentence) {
   check(sentence, {
     sentence: String,
-    spanAnnotations: [{
-      type: String,
-      begin: Number,
-      end: Number
-    }]
+    spanAnnotations: [
+      {
+        type: String,
+        begin: Number,
+        end: Number
+      }
+    ]
   });
 }
 
 Meteor.methods({
-  'sentences.insert'(sentence) {
+  "sentences.insert"(sentence) {
     checkSentence(sentence);
 
     // Make sure the user is logged in before inserting a task
-    if (! this.userId) {
-      throw new Meteor.Error('not-authorized');
+    if (!this.userId) {
+      throw new Meteor.Error("not-authorized");
     }
 
-    const lastDoc = Sentences.findOne({},{sort: {readableId: -1}});
+    const lastDoc = Sentences.findOne({}, { sort: { readableId: -1 } });
     const currentId = (lastDoc && lastDoc.readableId) || 0;
 
     Sentences.insert({
@@ -40,36 +42,44 @@ Meteor.methods({
       readableId: currentId + 1,
       createdAt: new Date(),
       owner: this.userId,
-      username: Meteor.users.findOne(this.userId).username,
+      username: Meteor.users.findOne(this.userId).username
     });
   },
-  'sentences.remove'(sentenceId) {
+  "sentences.remove"(sentenceId) {
     Sentences.remove(sentenceId);
   },
-  'sentences.addSpanAnnotation'(sentenceId, begin, end) {
+  "sentences.addSpanAnnotation"(sentenceId, begin, end) {
     check(begin, Number);
     check(end, Number);
-    Sentences.update(sentenceId, { $push: {spanAnnotations: {begin, end}}});
+    Sentences.update(sentenceId, {
+      $push: { spanAnnotations: { begin, end } }
+    });
   },
-  'sentences.setSpanAnnotationType'(sentenceId, index, begin, end) {
+  "sentences.setSpanAnnotationType"(sentenceId, index, begin, end) {
     check(index, Number);
     check(type, String);
-    Sentences.update({
-      _id: sentenceId,
-      begin,
-      end
-    }, {
-      $set: {'spanAnnotations.$': {type}}
-    });
+    Sentences.update(
+      {
+        _id: sentenceId,
+        begin,
+        end
+      },
+      {
+        $set: { "spanAnnotations.$": { type } }
+      }
+    );
   },
-  'sentences.removeSpanAnnotation'(sentenceId, begin, end, index) {
+  "sentences.removeSpanAnnotation"(sentenceId, begin, end, index) {
     check(index, Number);
-    Sentences.update({
-      _id: sentenceId,
-      begin,
-      end
-    }, {
-      $pull: {'spanAnnotations.$': {}}
-    });
-  },
+    Sentences.update(
+      {
+        _id: sentenceId,
+        begin,
+        end
+      },
+      {
+        $pull: { "spanAnnotations.$": {} }
+      }
+    );
+  }
 });
