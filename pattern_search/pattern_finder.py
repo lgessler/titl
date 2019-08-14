@@ -50,7 +50,9 @@ def normalize(s):
 
 
 # MAIN FUNCTIONS ##############################################################
-
+'''
+Return a list of sentences where a match was found.
+'''
 def main(args):
     validate_arguments(args)
     with open(args.corpus,'r') as f:
