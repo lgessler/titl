@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import DeleteIcon from "@material-ui/icons/Add";
+import DeleteIcon from "@material-ui/icons/Delete";
 import Fab from "@material-ui/core/Fab";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
@@ -18,8 +18,8 @@ const styles = theme => ({
   },
   subtitle: {
     position: "absolute",
-    right: theme.spacing(2),
-    top: theme.spacing(1),
+    right: theme.spacing(7),
+    top: theme.spacing(2),
     color: grey["700"]
   },
   spanAnnotation: {
@@ -29,6 +29,15 @@ const styles = theme => ({
   },
   selected: {
     backgroundColor: red["300"]
+  },
+  remove: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1)
+  },
+  icon: {
+    width: "20px",
+    height: "20px"
   }
 });
 
@@ -51,6 +60,7 @@ class Sentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      deleteHidden: true,
       selBegin: 0,
       selEnd: 0
     };
@@ -112,10 +122,12 @@ class Sentence extends Component {
     // Grab Highest Parent Node Under Sentence
     const ascend = node => {
       while (
+        node &&
         node.parentNode.className !== "sentence" &&
         !node.parentNode.className.includes(this.props.classes.card)
       )
         node = node.parentNode;
+
       return node;
     };
 
@@ -123,15 +135,19 @@ class Sentence extends Component {
     const sel = window.getSelection();
 
     // Set Begin/End Accordingly by Offset and Length to Left of Original Text
+    const ascSelAnchor = ascend(sel.anchorNode);
+    const ascSelFocus = ascend(sel.focusNode);
     let selBegin =
-      sel.anchorOffset + lenToLeft(ascend(sel.anchorNode).previousSibling);
+      sel.anchorOffset +
+      lenToLeft(ascSelAnchor ? ascSelAnchor.previousSibling : null);
     let selEnd =
-      sel.focusOffset + lenToLeft(ascend(sel.focusNode).previousSibling);
+      sel.focusOffset +
+      lenToLeft(ascSelFocus ? ascSelFocus.previousSibling : null);
 
     // Only Set Selection if Anchor and Focus Has Direct Parent that is Ancestor of the Other
     if (
-      ascend(sel.focusNode).parentNode.contains(sel.anchorNode) ||
-      ascend(sel.anchorNode).parentNode.contains(sel.focusNode)
+      (ascSelFocus && ascSelFocus.parentNode.contains(sel.anchorNode)) ||
+      (ascSelAnchor && ascSelAnchor.parentNode.contains(sel.focusNode))
     ) {
       // If Selection is in Card But Not On Annotation Text, Set Corresponding Begin or End to 0
       if (
@@ -157,6 +173,10 @@ class Sentence extends Component {
     this.clearSelection();
   };
 
+  toggleDelete = deleteHidden => {
+    this.setState({ deleteHidden });
+  };
+
   render() {
     const { readableId } = this.props.sentence;
     return (
@@ -164,8 +184,22 @@ class Sentence extends Component {
         className={this.props.classes.card}
         onMouseUp={this.handleSelection}
         onMouseDown={this.clearSelection}
+        onMouseEnter={() => this.toggleDelete(false)}
+        onMouseLeave={() => this.toggleDelete(true)}
       >
         <CardContent>
+          {this.state.deleteHidden ? null : (
+            <Fab
+              size="small"
+              color="secondary"
+              className={this.props.classes.remove}
+              onClick={() => {
+                Meteor.call("sentences.remove", this.props.sentence._id);
+              }}
+            >
+              <DeleteIcon className={this.props.classes.icon} />
+            </Fab>
+          )}
           <Typography
             variant="subtitle2"
             className={this.props.classes.subtitle}
