@@ -56,6 +56,7 @@ class AddSentence extends Component {
         if (idx < 10)
           Meteor.call("sentences.insert", {
             sentence: line.slice(0, 1),
+            annotations: [],
             spanAnnotations: [],
             zScore: this.zScore(line.slice(2))
           });
