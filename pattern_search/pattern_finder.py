@@ -169,15 +169,15 @@ def weightRestOfLine(unselected_corpus_line, unselected_input):
 def weightedFuzzymatch(split_corpusline, split_queryline):
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
     unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
-    return weight(selected_score, unselected_score)
+    return weightSubunits(selected_score, unselected_score)
 
 def weightedSimplematch(split_corpusline, split_queryline):
     '''Matches query to matched block and rest of sentences to each other'''
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
     if selected_score < 100:
-        return = 0
+        return 0
     unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
-    return weight(selected_score, unselected_score)
+    return weightSubunits(selected_score, unselected_score)
 
 def weightSubunits(selected_match_score, unselected_match_score):
     '''Takes similar scores for substring/subword units.
