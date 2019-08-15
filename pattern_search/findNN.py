@@ -16,7 +16,7 @@ def initialize():
     global all_lines, all_vectors
 
     with codecs.open(args.all_sents, "r", encoding='utf-8') as fin:
-        all_lines = fin.readlines()
+        all_lines = [line.strip().lower() for line in fin.readlines()]
 
     with codecs.open(args.all_sents_vectors,"r", encoding='utf-8') as fin:
         all_lines_vectors = fin.readlines()
@@ -51,7 +51,7 @@ def compute():
     #        v = np.asarray(vec.strip().split()).astype(np.float32)
     #        vectors.append(np.transpose(v.reshape((args.dim,1))))
 
-    indexes = [all_lines.index(line) for line in given_lines]
+    indexes = [all_lines.index(line.strip().lower()) for line in given_lines]
     vectors = [all_vectors[i] for i in indexes]
     assert len(given_lines) ==  len(vectors)
 
