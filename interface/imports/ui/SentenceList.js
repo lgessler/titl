@@ -7,13 +7,12 @@ import Container from "@material-ui/core/Container";
 import SpanAnnotatedSentence from "./SpanAnnotatedSentence";
 import SentenceAnnotatedSentence from "./SentenceAnnotatedSentence";
 
-
 export default function SentenceList(props) {
   const useStyles = makeStyles(theme => ({
     zeroState: {
       marginTop: theme.spacing(5),
       textAlign: "center"
-    },
+    }
   }));
   const styles = useStyles();
   const zeroState = (
@@ -28,8 +27,11 @@ export default function SentenceList(props) {
       {props.sentences.length === 0
         ? zeroState
         : props.sentences.map(s => {
-            return mode === "sentence" ? <SentenceAnnotatedSentence sentence={s} key={s._id} />
-                                       : <SpanAnnotatedSentence sentence={s} key={s._id} />;
+            return mode === "sentence" ? (
+              <SentenceAnnotatedSentence sentence={s} key={s._id} />
+            ) : (
+              <SpanAnnotatedSentence sentence={s} key={s._id} />
+            );
           })}
     </Container>
   );
