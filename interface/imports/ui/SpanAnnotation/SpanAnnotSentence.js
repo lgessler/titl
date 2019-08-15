@@ -27,7 +27,7 @@ const styles = theme => ({
     backgroundColor: red["300"]
   },
   saved: {
-    backgroundColor: green["300"]
+    backgroundColor: green[this.props && this.props.checked ? "300" : "100"]
   },
   toolbar: {
     position: "absolute",
@@ -54,7 +54,7 @@ const styles = theme => ({
   }
 });
 
-class SpanAnnotation extends Component {
+class SpanAnnotSentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -161,8 +161,7 @@ class SpanAnnotation extends Component {
       <div
         className={classNames(
           this.props.classes.toolbar,
-          /*this.state.toolbarVisible ? this.props.classes.savedToolbarVisible : this.props.classes.savedToolbar*/ this
-            .props.classes.savedToolbar
+          this.props.classes.savedToolbar
         )}
         onMouseUp={this.stopBubbling}
         onKeyUp={this.stopBubbling}
@@ -222,4 +221,4 @@ class SpanAnnotation extends Component {
   }
 }
 
-export default withStyles(styles)(SpanAnnotation);
+export default withStyles(styles)(SpanAnnotSentence);

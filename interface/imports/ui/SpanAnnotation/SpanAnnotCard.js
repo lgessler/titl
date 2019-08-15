@@ -7,15 +7,18 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
 import grey from "@material-ui/core/colors/grey";
-
-import SpanAnnotation from "./SpanAnnotation";
+import SpanAnnotSentence from "./SpanAnnotSentence";
+import HighLightSelection from "./HighlightSelection/HighlightSelection";
 
 const styles = theme => ({
   card: {
     paddingTop: theme.spacing(5),
     margin: theme.spacing(2),
     position: "relative",
-    overflow: "visible"
+    overflow: "visible",
+    "&:hover $highlightSelection": {
+      visibility: "visible"
+    }
   },
   subtitle: {
     position: "absolute",
@@ -27,10 +30,23 @@ const styles = theme => ({
     position: "absolute",
     right: "-15px",
     top: "-15px"
+  },
+  highlightSelection: {
+    paddingTop: theme.spacing(5),
+    "margin-left": theme.spacing(2),
+    visibility: "hidden",
+    transitionDelay: "300ms",
+    transitionProperty: "visibility",
+    position: "absolute",
+    left: "100%",
+    width: "50%",
+    top: "0%",
+    height: "100%",
+    "overflow-y": "scroll"
   }
 });
 
-class SpanAnnotatedSentence extends Component {
+class SpanAnnotCard extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -55,7 +71,8 @@ class SpanAnnotatedSentence extends Component {
         value: "",
         begin: this.state.selBegin,
         end: this.state.selEnd,
-        selected: true
+        selected: true,
+        checked: false
       });
 
     // Sort All Annotations Based on Begin
@@ -70,10 +87,12 @@ class SpanAnnotatedSentence extends Component {
       this.setState({ selBegin: 0, selEnd: 0 });
     };
 
-    for (let {value, begin, end, selected } of spanAnnotations.filter(x => x.type || x.selected)) {
+    for (let { value, begin, end, selected } of spanAnnotations.filter(
+      x => x.type || x.selected
+    )) {
       children.push(sentence.slice(lastIndex, begin));
       children.push(
-        <SpanAnnotation
+        <SpanAnnotSentence
           text={sentence.slice(begin, end)}
           sentenceId={this.props.sentence._id}
           begin={begin}
@@ -159,7 +178,6 @@ class SpanAnnotatedSentence extends Component {
           (selBegin <= a.begin && selEnd >= a.end)
         )
           selBegin = selEnd = 0;
-
         else if (selBegin >= a.begin && selBegin <= a.end) selBegin = a.end;
         else if (selEnd >= a.begin && selEnd <= a.end) selEnd = a.begin;
       });
@@ -183,14 +201,17 @@ class SpanAnnotatedSentence extends Component {
         onMouseEnter={() => this.toggleDelete(false)}
         onMouseLeave={() => this.toggleDelete(true)}
       >
+        <Card className={this.props.classes.highlightSelection}>
+          <HighLightSelection sentence={this.props.sentence} />
+        </Card>
         <CardContent>
           {this.state.deleteHidden ? null : (
             <IconButton
               size="small"
               className={this.props.classes.remove}
-              onClick={() => {
-                Meteor.call("sentences.remove", this.props.sentence._id);
-              }}
+              onClick={() =>
+                Meteor.call("sentences.remove", this.props.sentence._id)
+              }
             >
               <CancelIcon />
             </IconButton>
@@ -214,4 +235,4 @@ class SpanAnnotatedSentence extends Component {
   }
 }
 
-export default withStyles(styles)(SpanAnnotatedSentence);
+export default withStyles(styles)(SpanAnnotCard);
