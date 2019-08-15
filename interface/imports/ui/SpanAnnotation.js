@@ -19,8 +19,8 @@ const styles = theme => ({
     borderRadius: "0.7rem",
     margin: theme.spacing(-0.3),
     padding: theme.spacing(0.3),
-    '&:hover $savedToolbar': {
-      visibility: 'visible',
+    "&:hover $savedToolbar": {
+      visibility: "visible"
     }
   },
   selected: {
@@ -49,9 +49,9 @@ const styles = theme => ({
   },
   savedToolbar: {
     visibility: "hidden",
-    transitionDelay: '300ms',
-    transitionProperty: 'visibility'
-  },
+    transitionDelay: "300ms",
+    transitionProperty: "visibility"
+  }
 });
 
 class SpanAnnotation extends Component {
@@ -81,9 +81,9 @@ class SpanAnnotation extends Component {
     Meteor.call(
       "sentences.addSpanAnnotation",
       this.props.sentenceId,
+      this.state.type,
       this.props.begin,
-      this.props.end,
-      this.state.type
+      this.props.end
     );
     this.props.clearSelected();
   }
@@ -92,9 +92,9 @@ class SpanAnnotation extends Component {
     Meteor.call(
       "sentences.removeSpanAnnotation",
       this.props.sentenceId,
+      this.state.type,
       this.props.begin,
-      this.props.end,
-      this.state.type
+      this.props.end
     );
   }
 

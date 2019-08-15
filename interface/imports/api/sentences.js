@@ -19,7 +19,7 @@ function checkSentence(sentence) {
     sentence: String,
     annotations: [
       {
-        name: String,
+        type: String,
         value: {
           begin: Number,
           end: Number
@@ -28,11 +28,9 @@ function checkSentence(sentence) {
     ],
     spanAnnotations: [
       {
-        name: String,
-        value: {
-          begin: Number,
-          end: Number
-        }
+        type: String,
+        begin: Number,
+        end: Number
       }
     ],
     zScore: Number
@@ -62,31 +60,31 @@ Meteor.methods({
   "sentences.remove"(sentenceId) {
     Sentences.remove(sentenceId);
   },
-  "sentences.addAnnotation"(sentenceId, name, value) {
+  "sentences.addAnnotation"(sentenceId, type, value) {
     Sentence.update(sentenceId, {
-      $push: { name, value }
+      $push: { type, value }
     });
   },
-  "sentences.removeAnnotation"(sentenceId, name, value) {
+  "sentences.removeAnnotation"(sentenceId, type, value) {
     Sentences.update(
       {
         _id: sentenceId
       },
       {
-        $pull: { annotations: { name, value } }
+        $pull: { annotations: { type, value } }
       }
     );
   },
-  "sentences.addSpanAnnotation"(sentenceId, begin, end, type) {
+  "sentences.addSpanAnnotation"(sentenceId, type, begin, end) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
     check(type, String);
     Sentences.update(sentenceId, {
-      $push: { spanAnnotations: { name: type, value: { begin, end } } }
+      $push: { spanAnnotations: { type, begin, end } }
     });
   },
-  "sentences.removeSpanAnnotation"(sentenceId, begin, end, type) {
+  "sentences.removeSpanAnnotation"(sentenceId, type, begin, end) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
@@ -96,7 +94,7 @@ Meteor.methods({
         _id: sentenceId
       },
       {
-        $pull: { spanAnnotations: { name: type, value: { begin, end } } }
+        $pull: { spanAnnotations: { type, begin, end } }
       }
     );
   },
