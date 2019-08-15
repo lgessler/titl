@@ -97,20 +97,28 @@ def get_morphemes_pattern(string, indices, fuzzy=False):
 '''
 The pattern to match is a discontinuous span.
 '''
-def get_discont_span_pattern(strings, list_of_index_pairs):
-    pattern = strings[0]
-    return pattern
+def get_discont_span_pattern(string, list_of_index_pairs,fuzzy=False):
+    substrs = []
+    for pair in list_of_index_pairs:
+        substrs.append(string[pair[0]:pair[1]+1])
+    if not fuzzy:
+        pattern = ''
+        for s in substrs:
+            pattern += r'.*('+s+')'
+        return r''+pattern+r'.*'
+    return substrs
 
 def simpleMatch(corpus, pattern):
     results = []
-    regex = re.compile(pattern,re.I)
+    regex = re.compile(r''+pattern,re.I)
     for ln in corpus:
         norm_ln = normalize(ln)
         matches = list(re.finditer(regex, norm_ln))
         if matches:
             match_spans = []
             for m in matches:
-                match_spans.append(m.span())
+                for span in m.regs:
+                    match_spans.append(span)
             results.append((norm_ln,match_spans))
             print(norm_ln)
     return results
@@ -181,7 +189,7 @@ def main(args):
     elif args.discont:
         p = get_discont_span_pattern(s,indices,args.fuzzy)
     else:
-        p = get_sentences_pattern(s,indices[0],args.fuzzy)
+        p = get_sentences_pattern(s,indices[0])
     if args.fuzzy:
         matches = fuzzyMatch(corpus, p)
     else:
