@@ -6,7 +6,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import grey from '@material-ui/core/colors/grey';
+import grey from "@material-ui/core/colors/grey";
 
 import SpanAnnotation from "./SpanAnnotation";
 
@@ -15,7 +15,7 @@ const styles = theme => ({
     paddingTop: theme.spacing(5),
     margin: theme.spacing(2),
     position: "relative",
-    overflow: "visible",
+    overflow: "visible"
   },
   subtitle: {
     position: "absolute",
@@ -57,13 +57,25 @@ class SpanAnnotatedSentence extends Component {
       });
 
     // Sort All Annotations Based on Begin
-    spanAnnotations.sort(({ begin }) => begin);
+    spanAnnotations.sort((old, a) => {
+      return old.begin - a.begin;
+    });
+    spanAnnotations.forEach(a => {
+      spanAnnotations.forEach(b => {
+        if (a !== b && !a.type) {
+          if (a.begin >= b.begin && a.end <= b.end)
+            spanAnnotations = spanAnnotations.filter(c => c !== a);
+          else if (a.begin >= b.begin && a.begin <= b.end) a.begin = b.end;
+          else if (a.end >= b.begin && a.end <= b.end) a.end = b.begin;
+        }
+      });
+    });
 
     // Iterate Through All Span Annotations, Highlighting Those Selected
     let lastIndex = 0;
     const children = [];
     const clearSelected = () => {
-      this.setState({selBegin: 0, selEnd: 0});
+      this.setState({ selBegin: 0, selEnd: 0 });
     };
     for (let { begin, end, type, selected } of spanAnnotations) {
       children.push(sentence.slice(lastIndex, begin));
@@ -75,9 +87,7 @@ class SpanAnnotatedSentence extends Component {
           end={end}
           key={begin}
           type={type}
-          clearSelected={selected
-                         && begin !== end
-                         && clearSelected}
+          clearSelected={selected && begin !== end && clearSelected}
         />
       );
       lastIndex = end;
@@ -136,17 +146,9 @@ class SpanAnnotatedSentence extends Component {
       (ascSelAnchor && ascSelAnchor.parentNode.contains(sel.focusNode))
     ) {
       // If Selection is in Card But Not On Annotation Text, Set Corresponding Begin or End to 0
-      if (
-        ascend(sel.anchorNode).parentNode.className.includes(
-          this.props.classes.card
-        )
-      )
+      if (ascSelAnchor.parentNode.className.includes(this.props.classes.card))
         selBegin = 0;
-      if (
-        ascend(sel.focusNode).parentNode.className.includes(
-          this.props.classes.card
-        )
-      )
+      if (ascSelFocus.parentNode.className.includes(this.props.classes.card))
         selEnd = 0;
 
       // Interchange Begin and End To Proper Order, if Need Be
