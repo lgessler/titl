@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
+import { HTTP } from "meteor/http";
 import { Mongo } from "meteor/mongo";
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 
 export const Sentences = new Mongo.Collection("sentences");
 
@@ -15,13 +16,23 @@ if (Meteor.isServer) {
 function checkSentence(sentence) {
   check(sentence, {
     sentence: String,
+    annotations: [
+      {
+        type: String,
+        value: {
+          begin: Number,
+          end: Number
+        }
+      }
+    ],
     spanAnnotations: [
       {
         type: String,
         begin: Number,
         end: Number
       }
-    ]
+    ],
+    zScore: Number
   });
 }
 
@@ -48,27 +59,54 @@ Meteor.methods({
   "sentences.remove"(sentenceId) {
     Sentences.remove(sentenceId);
   },
-  "sentences.addSpanAnnotation"(sentenceId, begin, end, type) {
+  "sentences.addAnnotation"(sentenceId, type, value) {
+    Sentence.update(sentenceId, {
+      $push: { type, value }
+    });
+  },
+  "sentences.removeAnnotation"(sentenceId, type, value) {
+    Sentences.update(
+      {
+        _id: sentenceId
+      },
+      {
+        $pull: { annotations: { type, value } }
+      }
+    );
+  },
+  "sentences.addSpanAnnotation"(sentenceId, type, begin, end) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
     check(type, String);
     Sentences.update(sentenceId, {
-      $push: { spanAnnotations: { begin, end, type } }
+      $push: { spanAnnotations: { type, begin, end } }
     });
   },
-  "sentences.removeSpanAnnotation"(sentenceId, begin, end, type) {
+  "sentences.removeSpanAnnotation"(sentenceId, type, begin, end) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
     check(type, String);
     Sentences.update(
       {
-        _id: sentenceId,
+        _id: sentenceId
       },
       {
-        $pull: { "spanAnnotations": {begin, end, type} }
+        $pull: { spanAnnotations: { type, begin, end } }
       }
     );
+  },
+  "sentences.importFromTsv"(url, filename) {
+    if (Meteor.isServer) {
+      url = url || Meteor.settings.public.defaultUrl;
+      HTTP.call('GET', url + '/' + filename, {}, (err, resp) => {
+        const lines = [];
+        for (let line of resp.contents.trim().split("\n")) {
+          lines.push(line.split("\t"));
+        }
+        console.log(lines);
+      });
+    }
   }
 });

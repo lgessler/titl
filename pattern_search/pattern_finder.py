@@ -1,6 +1,5 @@
 '''
-Contributors: Olga Zamaraeva, Alexis Palmer
-olzama@uw.edu
+Contributors: Olga Zamaraeva, Alexis Palmer, Sarah Moeller
 
 For the Pittsburgh workshop on Technology for Language Documentation and Revitalization
 (August 12-16, 2019)
@@ -125,11 +124,11 @@ def fuzzyMatch(corpus, pattern):
         partialRatio = fuzz.partial_ratio(pattern, norm_ln)
         tokenSetRatio = fuzz.token_set_ratio(pattern, norm_ln)
 
-        if partialRatio >= 65:
+        if partialRatio >= 80:
             matches.append(ln)
             print(partialRatio, norm_ln.strip('\n'))
 
-        elif tokenSetRatio >= 65:
+        elif tokenSetRatio >= 80:
             print("----------- token set ratio ------------")
             matches.append(ln)
             print(tokenSetRatio, norm_ln.strip('\n'))
@@ -142,6 +141,27 @@ def tryProcess(corpus, pattern):
     matches = process.extract(pattern, corpus)
     print(matches)
 
+# SPLITTING and WEIGHTING FUNCTIONS ##########################################################
+
+'''
+Activated if all but sentence selection is flagged.
+'''
+
+#def splitCorpusString(corpus_line,len(selected_unit)):
+#    '''Splits corpus strings.'''
+#    split1 = corpus_line[]
+        
+def weightSubunits(selected_match_score, unselected_match_score):
+    '''Takes similar scores for substring/subword units.
+    Gives higher weights to selected subunit.
+    Returns combined score.'''
+    selected_weight = .6
+    unselected_weight = .4
+
+    weight1 = selected_match_score * selected_weight
+    weight2 = unselected_match_score * unselected_weight
+
+    return weight1 + weight2
 
 # MAIN FUNCTIONS ##############################################################
 '''
