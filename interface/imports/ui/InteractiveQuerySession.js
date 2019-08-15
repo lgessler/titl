@@ -98,7 +98,7 @@ export default function InteractiveQuerySession(props) {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="md">
       <Card className={classes.card}>
         <DialogContent>
           <DialogContentText>
