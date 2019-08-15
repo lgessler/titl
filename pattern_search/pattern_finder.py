@@ -99,14 +99,36 @@ def tryProcess(corpus, string):
 # SPLITTING and WEIGHTING FUNCTIONS ##########################################################
 
 '''
-Activated if all but sentence selection is flagged.
+Not activated if sentence selection is flagged.
 '''
 
-def splitCorpusString(corpus_line,len(selected_unit)):
-    '''Splits corpus strings.'''
-    split1 = corpus_line[]
-        
-def weightSubunits(selected_match_score, unselected_match_score):
+def split(sentence, idcs):
+    '''Splits sentence into block and rest of sentence'''
+    block = sentence[idcs[0]:idcs[1]]
+    rest_of_line = corpus_line[:idcs[0]] + ' ' + corpus_line[idcs[1]:]
+    return [block, rest_of_line]
+
+def weightRestOfLine(unselected_corpus_line, unselected_input):
+    #do not penalize free word order
+    token_score = fuzz.token_sort_ratio(unselected_corpus_line, unselected_input)
+    #do not penalize repetitions
+    set_score = fuzz.token_set_ratio(unselected_corpus_line, unselected_input)
+    return (token_score/2) + (set_score)/2
+
+def weightedFuzzymatch(split_corpusline, split_queryline):
+    selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
+    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    return weight(selected_score, unselected_score)
+
+def weightedSimplematch(split_corpusline, split_queryline):
+    '''Matches query to matched block and rest of sentences to each other'''
+    selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
+    if selected_score < 100:
+        return = 0
+    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    return weight(selected_score, unselected_score)
+
+def weight(selected_match_score, unselected_match_score):
     '''Takes similar scores for substring/subword units.
     Gives higher weights to selected subunit.
     Returns combined score.'''
@@ -115,8 +137,32 @@ def weightSubunits(selected_match_score, unselected_match_score):
 
     weight1 = selected_match_score * selected_weight
     weight2 = unselected_match_score * unselected_weight
-
     return weight1 + weight2
+
+
+def weightedMatch(corpus,string,query_idcs,fuzzy=True):
+    '''split, match splits, and weight score.
+    Returns list of match sentences'''
+    weighted_matches = []
+    split_string = split(string,query_idcs)
+    #[(corpus line, ratio, (matched_block_indices))]
+    partial_matches = process.extract(split_string[0], corpus, scorer=fuzz.partial_ratio)
+    for match in partial_matches:
+        weighted_score = 0
+        if match[1] >= 80:
+            if fuzzy:
+                split_match = split(match[0], match[2])
+                weighted_score = weightedFuzzymatch(split_match, split_string)
+            else:
+                norm_match = match[0].lower()
+                split_match = split(norm_match, match[2])
+                weighted_score = weightedSimplematch(split_match, split_string)
+
+            if weighted_score >= 80:
+                weighted_matches.append(match[0])
+                print(weighted_score, match[0].strip('\n'))
+
+    return weighted_matches
 
 # MAIN FUNCTIONS ##############################################################
 '''
@@ -127,9 +173,15 @@ def main(args):
         corpus = f.readlines()
     s = normalize(args.string)
     if args.fuzzy:
-        matches = fuzzyMatch(corpus, s)
+        if args.sentence:
+            matches = fuzzyMatch(corpus, s)
+        else:
+            matches = weightedFuzzymatch(corpus, s)
     else:
-        matches = simpleMatch(corpus, s)
+        if args.sentence:
+            matches = simpleMatch(corpus, s)
+        else:
+            matches = weightedSimplematch(corpus, s)
 #    print("testing process function from fuzzywuzzy")
 #    tryProcess(corpus, s)
     # matches = []
