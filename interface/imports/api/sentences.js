@@ -1,7 +1,8 @@
 import { Meteor } from "meteor/meteor";
-import { HTTP } from 'meteor/http'
+import { HTTP } from "meteor/http";
 import { Mongo } from "meteor/mongo";
 import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 
 export const Sentences = new Mongo.Collection("sentences");
 
@@ -16,13 +17,25 @@ if (Meteor.isServer) {
 function checkSentence(sentence) {
   check(sentence, {
     sentence: String,
+    annotations: [
+      {
+        name: String,
+        value: {
+          begin: Number,
+          end: Number
+        }
+      }
+    ],
     spanAnnotations: [
       {
-        type: String,
-        begin: Number,
-        end: Number
+        name: String,
+        value: {
+          begin: Number,
+          end: Number
+        }
       }
-    ]
+    ],
+    zScore: Number
   });
 }
 
@@ -51,16 +64,16 @@ Meteor.methods({
   },
   "sentences.addAnnotation"(sentenceId, name, value) {
     Sentence.update(sentenceId, {
-      $push: {name, value}
+      $push: { name, value }
     });
   },
   "sentences.removeAnnotation"(sentenceId, name, value) {
     Sentences.update(
       {
-        _id: sentenceId,
+        _id: sentenceId
       },
       {
-        $pull: { "annotations": {name, value} }
+        $pull: { annotations: { name, value } }
       }
     );
   },
@@ -70,7 +83,7 @@ Meteor.methods({
     check(end, Number);
     check(type, String);
     Sentences.update(sentenceId, {
-      $push: { spanAnnotations: { begin, end, type } }
+      $push: { spanAnnotations: { name: type, value: { begin, end } } }
     });
   },
   "sentences.removeSpanAnnotation"(sentenceId, begin, end, type) {
@@ -80,10 +93,10 @@ Meteor.methods({
     check(type, String);
     Sentences.update(
       {
-        _id: sentenceId,
+        _id: sentenceId
       },
       {
-        $pull: { "spanAnnotations": {begin, end, type} }
+        $pull: { spanAnnotations: { name: type, value: { begin, end } } }
       }
     );
   },

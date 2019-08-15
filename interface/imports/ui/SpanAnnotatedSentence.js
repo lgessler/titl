@@ -6,7 +6,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import grey from '@material-ui/core/colors/grey';
+import grey from "@material-ui/core/colors/grey";
 
 import SpanAnnotation from "./SpanAnnotation";
 
@@ -15,7 +15,7 @@ const styles = theme => ({
     paddingTop: theme.spacing(5),
     margin: theme.spacing(2),
     position: "relative",
-    overflow: "visible",
+    overflow: "visible"
   },
   subtitle: {
     position: "absolute",
@@ -51,36 +51,35 @@ class SpanAnnotatedSentence extends Component {
     // Set a Highlighted Annotation Based on State's selBegin/End
     if (this.state.selBegin !== this.state.selEnd)
       spanAnnotations.push({
-        begin: this.state.selBegin,
-        end: this.state.selEnd,
+        value: { begin: this.state.selBegin, end: this.state.selEnd },
         selected: true
       });
 
     // Sort All Annotations Based on Begin
-    spanAnnotations.sort(({ begin }) => begin);
+    spanAnnotations.sort((old, a) => {
+      return old.value.begin - a.value.begin;
+    });
 
     // Iterate Through All Span Annotations, Highlighting Those Selected
     let lastIndex = 0;
     const children = [];
     const clearSelected = () => {
-      this.setState({selBegin: 0, selEnd: 0});
+      this.setState({ selBegin: 0, selEnd: 0 });
     };
-    for (let { begin, end, type, selected } of spanAnnotations) {
-      children.push(sentence.slice(lastIndex, begin));
+    for (let { value, type, selected } of spanAnnotations) {
+      children.push(sentence.slice(lastIndex, value.begin));
       children.push(
         <SpanAnnotation
-          text={sentence.slice(begin, end)}
+          text={sentence.slice(value.begin, value.end)}
           sentenceId={this.props.sentence._id}
-          begin={begin}
-          end={end}
-          key={begin}
+          begin={value.begin}
+          end={value.end}
+          key={value.begin}
           type={type}
-          clearSelected={selected
-                         && begin !== end
-                         && clearSelected}
+          clearSelected={selected && value.begin !== value.end && clearSelected}
         />
       );
-      lastIndex = end;
+      lastIndex = value.end;
     }
     children.push(sentence.slice(lastIndex));
 
@@ -99,9 +98,15 @@ class SpanAnnotatedSentence extends Component {
       if (!node) {
         return 0;
       }
-      const findToolbar = node => node && node.lastChild && node.lastChild.nodeName === "DIV" && node.lastChild;
+      const findToolbar = node =>
+        node &&
+        node.lastChild &&
+        node.lastChild.nodeName === "DIV" &&
+        node.lastChild;
       const toolbar = findToolbar(node);
-      const textLength = toolbar ? node.textContent.length - toolbar.textContent.length : node.textContent.length;
+      const textLength = toolbar
+        ? node.textContent.length - toolbar.textContent.length
+        : node.textContent.length;
       return textLength + lenToLeft(node.previousSibling);
     }
 
@@ -136,21 +141,25 @@ class SpanAnnotatedSentence extends Component {
       (ascSelAnchor && ascSelAnchor.parentNode.contains(sel.focusNode))
     ) {
       // If Selection is in Card But Not On Annotation Text, Set Corresponding Begin or End to 0
-      if (
-        ascend(sel.anchorNode).parentNode.className.includes(
-          this.props.classes.card
-        )
-      )
+      if (ascSelAnchor.parentNode.className.includes(this.props.classes.card))
         selBegin = 0;
-      if (
-        ascend(sel.focusNode).parentNode.className.includes(
-          this.props.classes.card
-        )
-      )
+      if (ascSelFocus.parentNode.className.includes(this.props.classes.card))
         selEnd = 0;
 
       // Interchange Begin and End To Proper Order, if Need Be
       if (selBegin > selEnd) [selBegin, selEnd] = [selEnd, selBegin];
+
+      this.props.sentence.spanAnnotations.forEach(a => {
+        if (
+          (selBegin >= a.value.begin && selEnd <= a.value.end) ||
+          (selBegin <= a.value.begin && selEnd >= a.value.end)
+        )
+          selBegin = selEnd = 0;
+        else if (selBegin >= a.value.begin && selBegin <= a.value.end)
+          selBegin = a.value.end;
+        else if (selEnd >= a.value.begin && selEnd <= a.value.end)
+          selEnd = a.value.begin;
+      });
 
       this.setState({ selBegin, selEnd });
     }
