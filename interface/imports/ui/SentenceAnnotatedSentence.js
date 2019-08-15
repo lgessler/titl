@@ -14,6 +14,9 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
+import {Meteor} from "meteor/meteor";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 const styles = theme => ({
   card: {
@@ -32,6 +35,10 @@ const styles = theme => ({
     position: "absolute",
     right: "-15px",
     top: "-15px"
+  },
+  toggle: {
+    display: "block",
+    textAlign: "center"
   }
 });
 
@@ -43,16 +50,18 @@ class SentenceAnnotatedSentence extends Component {
       selBegin: 0,
       selEnd: 0,
       type: "",
+      relevant: false
     };
-    this.handleChange = this.handleChange.bind(this);
+    this.toggleRelevant = this.toggleRelevant.bind(this);
   }
 
   toggleDelete = deleteHidden => {
     this.setState({ deleteHidden });
   };
 
-  handleChange(e) {
-
+  toggleRelevant(e) {
+    this.setState({relevant: !this.state.relevant});
+    Meteor.call("sentences.addAnnotation", this.props.sentence._id, "relevant", !this.state.relevant);
   }
 
   render() {
@@ -70,7 +79,7 @@ class SentenceAnnotatedSentence extends Component {
               className={this.props.classes.remove}
               onClick={() => {
                 Meteor.call(
-                  "sentences.removeAnnotation",
+                  "sentences.remove",
                   this.props.sentence._id
                 );
               }}
@@ -91,19 +100,19 @@ class SentenceAnnotatedSentence extends Component {
           >
             {this.props.sentence.sentence}
           </div>
-          <FormControl>
-            <InputLabel htmlFor="type">Type</InputLabel>
-            <Select
-              value={this.state.type}
-              onChange={this.handleChange}
-              inputProps={{
-                name: 'type',
-                id: 'type',
-              }}
-            >
-              {types.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
-            </Select>
-          </FormControl>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={this.state.relevant}
+                onChange={this.toggleRelevant}
+                value="relevant"
+                color="primary"
+              />
+            }
+            label="Relevant"
+            className={this.props.classes.toggle}
+          />
         </CardContent>
       </Card>
     );

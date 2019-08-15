@@ -13,9 +13,9 @@ import Typography from "@material-ui/core/Typography";
 
 import { Sentences } from "../api/sentences";
 import AccountsUIWrapper from "./AccountsUIWrapper.js";
-import SentenceList from "./SentenceList.js";
 import AddSentence from "./AddSentence.js";
 import Sidebar from "./Sidebar.js";
+import InteractiveQuerySession from "./InteractiveQuerySession";
 
 function App(props) {
   const theme = createMuiTheme();
@@ -83,7 +83,7 @@ function App(props) {
         <Sidebar drawerOpen={drawerOpen} handleDrawerClose={handleDrawerClose} />
 
         {props.currentUser ? (
-          <SentenceList
+          <InteractiveQuerySession
             sentences={props.sentences}
             currentUser={props.currentUser}
           />
