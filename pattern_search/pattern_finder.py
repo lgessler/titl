@@ -45,9 +45,6 @@ def validate_arguments(args,parser):
     if not args.corpus:
         print('Please provide a corpus to search in.')
         success = False
-    if args.string == '*':
-        print('Don\'t do that (use * as your pattern)' )
-        success = False
     if not (args.words or args.morphemes or args.discont):
         print('Default: Treating the entire sentence as pattern.')
     if not success:
@@ -82,7 +79,7 @@ def get_sentences_pattern(string, indices):
 The pattern to match is one or more contiguous words.
 '''
 def get_words_pattern(string, indices, fuzzy=False):
-    substr = string[indices[0]:indices[1]+1]
+    substr = re.escape(string[indices[0]:indices[1]+1])
     pattern = r'\b'+substr+r'\b' if not fuzzy else substr # \b is word boundary
     return pattern
 
@@ -90,7 +87,7 @@ def get_words_pattern(string, indices, fuzzy=False):
 The pattern to match is one or more contiguous morphemes.
 '''
 def get_morphemes_pattern(string, indices, fuzzy=False):
-    substr = string[indices[0]:indices[1]+1]
+    substr = re.escape(string[indices[0]:indices[1]+1])
     pattern = r'\B'+substr+'|'+substr+r'\B' if not fuzzy else substr
     return pattern
 
@@ -104,7 +101,7 @@ def get_discont_span_pattern(string, list_of_index_pairs,fuzzy=False):
     if not fuzzy:
         pattern = ''
         for s in substrs:
-            pattern += r'.*('+s+')'
+            pattern += r'.*('+re.escape(s)+')'
         return r''+pattern+r'.*'
     return substrs
 
