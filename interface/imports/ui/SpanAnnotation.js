@@ -81,7 +81,6 @@ class SpanAnnotation extends Component {
     Meteor.call(
       "sentences.addSpanAnnotation",
       this.props.sentenceId,
-      this.state.type,
       this.props.begin,
       this.props.end,
       "type",
