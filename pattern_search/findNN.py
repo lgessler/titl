@@ -9,7 +9,6 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 
-given_lines = []
 all_vectors = None
 all_lines = None
 
@@ -25,7 +24,7 @@ def initialize():
 
     assert len(all_lines) == len(all_vectors)
     print("Loaded all lines and vectors.")
-    print("Total lines: {0} Input Lines: {1}".format(len(all_lines), len(given_lines)))
+    print("Total lines: " + str(len(all_lines)))
 
     
     print("Building KDTree... ", end="")
@@ -34,24 +33,14 @@ def initialize():
 
 @app.route('/', methods=["POST"])
 def compute():
-    global given_lines, all_lines, all_vectors, tree
+    global all_lines, all_vectors, tree
+    given_lines = []
 
-    if args.input_sent:
-        with codecs.open(args.input_sent, "r", encoding='utf-8') as fin:
-            given_lines += fin.readlines()
-    elif request.json['sentences']:
+    if request.json['sentences']:
         sentences = [sentence['text'] for sentence in request.json['sentences'] if sentence['relevant']]
         given_lines += sentences
     else:
         raise Exception("no input")
-
-
-    #with codecs.open(args.input_sent_vec,"r", encoding='utf-8') as fin:
-    #    given_lines_vectors = fin.readlines()
-    #    vectors = []
-    #    for vec  in given_lines_vectors:
-    #        v = np.asarray(vec.strip().split()).astype(np.float32)
-    #        vectors.append(np.transpose(v.reshape((args.dim,1))))
 
     indexes = [all_lines.index(line.strip().lower()) for line in given_lines]
     vectors = np.array([all_vectors[i] for i in indexes])
@@ -68,18 +57,12 @@ def compute():
         sent = all_lines[sent_index]
         sent_dict[sent] = cosine_value
 
-    if args.output:
-        with codecs.open(args.output,"w", encoding='utf-8') as fout:
-            pass #NYI
-    else:
-        return jsonify(sent_dict)
+    return jsonify(sent_dict)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--all_sents", type=str, default='ara_raw.lower.txt')
     parser.add_argument("--all_sents_vectors", type=str, default='ara_sent2vec.lower.vec')
-    parser.add_argument("--input_sent", type=str, default=None)
-    parser.add_argument("--input_sent_vec", type=str)
     parser.add_argument("--output", type=str, default=None)
     parser.add_argument("--k", type=int, default=20)
     parser.add_argument("--dim", type=int, default=700)
