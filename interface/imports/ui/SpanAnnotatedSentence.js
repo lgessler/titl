@@ -60,16 +60,6 @@ class SpanAnnotatedSentence extends Component {
     spanAnnotations.sort((old, a) => {
       return old.begin - a.begin;
     });
-    spanAnnotations.forEach(a => {
-      spanAnnotations.forEach(b => {
-        if (a !== b && !a.type) {
-          if (a.begin >= b.begin && a.end <= b.end)
-            spanAnnotations = spanAnnotations.filter(c => c !== a);
-          else if (a.begin >= b.begin && a.begin <= b.end) a.begin = b.end;
-          else if (a.end >= b.begin && a.end <= b.end) a.end = b.begin;
-        }
-      });
-    });
 
     // Iterate Through All Span Annotations, Highlighting Those Selected
     let lastIndex = 0;
@@ -109,9 +99,15 @@ class SpanAnnotatedSentence extends Component {
       if (!node) {
         return 0;
       }
-      const findToolbar = node => node && node.lastChild && node.lastChild.nodeName === "DIV" && node.lastChild;
+      const findToolbar = node =>
+        node &&
+        node.lastChild &&
+        node.lastChild.nodeName === "DIV" &&
+        node.lastChild;
       const toolbar = findToolbar(node);
-      const textLength = toolbar ? node.textContent.length - toolbar.textContent.length : node.textContent.length;
+      const textLength = toolbar
+        ? node.textContent.length - toolbar.textContent.length
+        : node.textContent.length;
       return textLength + lenToLeft(node.previousSibling);
     }
 
@@ -153,6 +149,16 @@ class SpanAnnotatedSentence extends Component {
 
       // Interchange Begin and End To Proper Order, if Need Be
       if (selBegin > selEnd) [selBegin, selEnd] = [selEnd, selBegin];
+
+      this.props.sentence.spanAnnotations.forEach(a => {
+        if (
+          (selBegin >= a.begin && selEnd <= a.end) ||
+          (selBegin <= a.begin && selEnd >= a.end)
+        )
+          selBegin = selEnd = 0;
+        else if (selBegin >= a.begin && selBegin <= a.end) selBegin = a.end;
+        else if (selEnd >= a.begin && selEnd <= a.end) selEnd = a.begin;
+      });
 
       this.setState({ selBegin, selEnd });
     }
