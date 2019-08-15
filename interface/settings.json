@@ -6,6 +6,6 @@
       "C"
     ],
     "annotationLevel": "sentence",
-    "defaultUrl": "localhost:8000"
+    "defaultUrl": "http://localhost:8000"
   }
 }
