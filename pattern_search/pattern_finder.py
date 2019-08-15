@@ -28,7 +28,6 @@ MATCH           = 'MATCH'
 PARTIAL_MATCH   = 'PARTIAL MATCH' # to use with editdistance or something similar
 NO_MATCH      = 'NO MATCH'
 
-
 # EXCEPTIONS ##################################################################
 
 class PatternFinderError(Exception):
@@ -70,11 +69,11 @@ def fuzzyMatch(corpus, string):
         partialRatio = fuzz.partial_ratio(string, norm_ln)
         tokenSetRatio = fuzz.token_set_ratio(string, norm_ln)
 
-        if partialRatio >= 65:
+        if partialRatio >= 80:
             matches.append(ln)
             print(partialRatio, norm_ln.strip('\n'))
 
-        elif tokenSetRatio >= 65:
+        elif tokenSetRatio >= 80:
             print("----------- token set ratio ------------")
             matches.append(ln)
             print(tokenSetRatio, norm_ln.strip('\n'))
@@ -86,8 +85,31 @@ def tryProcess(corpus, string):
     print(len(corpus))
     matches = process.extract(string, corpus)
     print(matches)
+
+# SPLITTING and WEIGHTING FUNCTIONS ##########################################################
+
+'''
+Activated if all but sentence selection is flagged.
+'''
+
+def splitCorpusString(corpus_line,len(selected_unit)):
+    '''Splits corpus strings.'''
+    split1 = corpus_line[]
         
-        
+def weightSubunits(selected_match_score, unselected_match_score):
+    '''Takes similar scores for substring/subword units.
+    Gives higher weights to selected subunit.
+    Returns combined score.'''
+    selected_weight = .6
+    unselected_weight = .4
+
+    weight1 = selected_match_score * selected_weight
+    weight2 = unselected_match_score * unselected_weight
+
+    return weight1 + weight2
+
+
+
 
 
 # MAIN FUNCTIONS ##############################################################
