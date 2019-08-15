@@ -26,7 +26,7 @@ export default function SentenceList(props) {
       {props.sentences.length === 0
         ? zeroState
         : props.sentences
-            .sort((s1, s2) => (s1.zScore <= s2.zScore ? s1 : s2))
+            .sort((s1, s2) => s1.zScore <= s2.zScore)
             .map(s => {
               return <Sentence sentence={s} key={s._id} />;
             })}
