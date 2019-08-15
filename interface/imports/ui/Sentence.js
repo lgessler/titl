@@ -60,6 +60,16 @@ class Sentence extends Component {
     spanAnnotations.sort((old, a) => {
       return old.begin - a.begin;
     });
+    spanAnnotations.forEach(a => {
+      spanAnnotations.forEach(b => {
+        if (a !== b && !a.type) {
+          if (a.begin >= b.begin && a.end <= b.end)
+            spanAnnotations = spanAnnotations.filter(c => c !== a);
+          else if (a.begin >= b.begin && a.begin <= b.end) a.begin = b.end;
+          else if (a.end >= b.begin && a.end <= b.end) a.end = b.begin;
+        }
+      });
+    });
 
     // Iterate Through All Span Annotations, Highlighting Those Selected
     let lastIndex = 0;
