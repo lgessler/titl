@@ -42,38 +42,9 @@ class AddSentence extends Component {
     Meteor.call("sentences.insert", {
       sentence: this.state.text,
       annotations: [],
-      spanAnnotations: [],
-      zScore: 0
+      spanAnnotations: []
     });
   };
-
-  readSentencesFromFile = () => {
-    let reader = new FileReader();
-
-    reader.onload = e => {
-      const lines = e.target.result.split(/\r\n|\n/);
-      lines.forEach((line, idx), () => {
-        if (idx < 10)
-          Meteor.call("sentences.insert", {
-            sentence: line.slice(0, 1),
-            annotations: [],
-            spanAnnotations: [],
-            zScore: this.zScore(line.slice(2))
-          });
-      });
-    };
-
-    reader.readAsText(this.state.text);
-  };
-
-  zScore(scores) {
-    const mean = scores.reduce((a, b) => a + b / scores.length, 0);
-    return (
-      (scores.reduce((a, b) => (a > b ? a : b)) - mean) *
-      ((scores.length - 1) / scores.reduce((a, b) => a + (b - mean) ** 2)) **
-        0.5
-    );
-  }
 
   render() {
     return (
@@ -110,9 +81,6 @@ class AddSentence extends Component {
           <DialogActions>
             <Button onClick={this.close} color="secondary">
               Cancel
-            </Button>
-            <Button onClick={this.readSentencesFromFile} color="primary">
-              Read from File
             </Button>
             <Button onClick={this.closeAndSave} color="primary">
               Add Sentence

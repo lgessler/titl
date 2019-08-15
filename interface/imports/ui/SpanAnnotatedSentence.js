@@ -51,6 +51,8 @@ class SpanAnnotatedSentence extends Component {
     // Set a Highlighted Annotation Based on State's selBegin/End
     if (this.state.selBegin !== this.state.selEnd)
       spanAnnotations.push({
+        name: "type",
+        value: "",
         begin: this.state.selBegin,
         end: this.state.selEnd,
         selected: true
@@ -67,7 +69,8 @@ class SpanAnnotatedSentence extends Component {
     const clearSelected = () => {
       this.setState({ selBegin: 0, selEnd: 0 });
     };
-    for (let { type, begin, end, selected } of spanAnnotations) {
+
+    for (let {value, begin, end, selected } of spanAnnotations.filter(x => x.type || x.selected)) {
       children.push(sentence.slice(lastIndex, begin));
       children.push(
         <SpanAnnotation
@@ -76,7 +79,7 @@ class SpanAnnotatedSentence extends Component {
           begin={begin}
           end={end}
           key={begin}
-          type={type}
+          type={value}
           clearSelected={selected && begin !== end && clearSelected}
         />
       );
@@ -156,6 +159,7 @@ class SpanAnnotatedSentence extends Component {
           (selBegin <= a.begin && selEnd >= a.end)
         )
           selBegin = selEnd = 0;
+
         else if (selBegin >= a.begin && selBegin <= a.end) selBegin = a.end;
         else if (selEnd >= a.begin && selEnd <= a.end) selEnd = a.begin;
       });

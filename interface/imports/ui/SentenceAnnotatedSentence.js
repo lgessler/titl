@@ -9,6 +9,11 @@ import { withStyles } from "@material-ui/styles";
 import grey from "@material-ui/core/colors/grey";
 
 import SpanAnnotation from "./SpanAnnotation";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
 
 const styles = theme => ({
   card: {
@@ -36,13 +41,19 @@ class SentenceAnnotatedSentence extends Component {
     this.state = {
       deleteHidden: true,
       selBegin: 0,
-      selEnd: 0
+      selEnd: 0,
+      type: "",
     };
+    this.handleChange = this.handleChange.bind(this);
   }
 
   toggleDelete = deleteHidden => {
     this.setState({ deleteHidden });
   };
+
+  handleChange(e) {
+
+  }
 
   render() {
     const { readableId } = this.props.sentence;
@@ -80,6 +91,19 @@ class SentenceAnnotatedSentence extends Component {
           >
             {this.props.sentence.sentence}
           </div>
+          <FormControl>
+            <InputLabel htmlFor="type">Type</InputLabel>
+            <Select
+              value={this.state.type}
+              onChange={this.handleChange}
+              inputProps={{
+                name: 'type',
+                id: 'type',
+              }}
+            >
+              {types.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+            </Select>
+          </FormControl>
         </CardContent>
       </Card>
     );

@@ -15,8 +15,8 @@ in a variety of ways, etc.)
 import argparse
 import textwrap
 import re
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
+from myfuzzywuzzy import fuzz
+from myfuzzywuzzy import process
 
 
 # REPORT FORMATTING PARAMETERS ################################################
@@ -81,17 +81,17 @@ def get_sentences_pattern(string, indices):
 '''
 The pattern to match is one or more contiguous words.
 '''
-def get_words_pattern(string, indices):
+def get_words_pattern(string, indices, fuzzy=False):
     substr = string[indices[0]:indices[1]+1]
-    pattern = r'\b'+substr+r'\b' # \b is word boundary
+    pattern = r'\b'+substr+r'\b' if not fuzzy else substr # \b is word boundary
     return pattern
 
 '''
 The pattern to match is one or more contiguous morphemes.
 '''
-def get_morphemes_pattern(string, indices):
+def get_morphemes_pattern(string, indices, fuzzy=False):
     substr = string[indices[0]:indices[1]+1]
-    pattern = r'\B'+substr+'|'+substr+r'\B'
+    pattern = r'\B'+substr+'|'+substr+r'\B' if not fuzzy else substr
     return pattern
 
 '''
@@ -120,8 +120,10 @@ def fuzzyMatch(corpus, pattern):
     matches = []
     for ln in corpus:
         norm_ln = normalize(ln)
-        # ratio = fuzz.ratio(string, norm_ln)
         partialRatio = fuzz.partial_ratio(pattern, norm_ln)
+        # partialRatioResult returns the same number as partialRatio but also the indices
+        # of where the match was found.
+        partialRatioResult = fuzz.custom_get_blocks(pattern,norm_ln)
         tokenSetRatio = fuzz.token_set_ratio(pattern, norm_ln)
 
         if partialRatio >= 80:
@@ -173,13 +175,13 @@ def main(args):
     indices = get_indices(args)
     s = normalize(args.string)
     if args.words:
-        p = get_words_pattern(s,indices[0])
+        p = get_words_pattern(s,indices[0],args.fuzzy)
     elif args.morphemes:
-        p = get_morphemes_pattern(s,indices[0])
+        p = get_morphemes_pattern(s,indices[0],args.fuzzy)
     elif args.discont:
-        p = get_discont_span_pattern(s,indices)
+        p = get_discont_span_pattern(s,indices,args.fuzzy)
     else:
-        p = get_sentences_pattern(s,indices[0])
+        p = get_sentences_pattern(s,indices[0],args.fuzzy)
     if args.fuzzy:
         matches = fuzzyMatch(corpus, p)
     else:
