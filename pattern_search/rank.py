@@ -10,6 +10,9 @@ from pattern_finder import compareLines
 Source:
 https://www.quora.com/Where-can-I-find-a-maximum-marginal-relevance-algorithm-in-Python-for-redundancy-removal-in-two-documents
 '''
+
+SIM1 = {}
+
 def mmr_sorted(docs, q, lambda_, similarity1, similarity2):
     """Sort a list of docs by Maximal marginal relevance
 
@@ -42,22 +45,23 @@ def argmax(keys, f):
     return max(keys, key=f)
 
 def similarity1(d,q):
-    return
+    score = int(SIM1[d[1]].strip())
+    return score
 
 def similarity2(d1,d2):
+    score = compareLines(d1,d2)
     return compareLines(d1,d2)
 
 def main(args):
     with open(args.input, 'r') as f:
         matches = f.readlines()
-    sim1 = {}
-    sentences = {}
+    sentences = set()
     for i,m in enumerate(matches):
         sentence,score = m.split('\t')
-        sentences[i]=sentence
-        sim1[i]=score
+        sentences.add((sentence,i))
+        SIM1[i]=score
 
-    mmr_sorted(sentences.values(),'DUMMY',similarity1,similarity2)
+    mmr_sorted(sentences,'DUMMY',args.lambd, similarity1,similarity2)
 # SCRIPT ENTRYPOINT ###########################################################
 
 if __name__ == '__main__':
@@ -73,7 +77,7 @@ if __name__ == '__main__':
         '''))
     parser.add_argument('-i', '--input',
                         help='input file SENTENSE TAB SCORE')
-    parser.add_argument('-l', '--lambda',
+    parser.add_argument('-l', '--lambd',
                         help='A number between 0 and 1, 0 means less diversity, 1 means more diversity')
     args = parser.parse_args()
     main(args)
