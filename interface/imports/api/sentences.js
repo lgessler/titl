@@ -16,7 +16,7 @@ if (Meteor.isServer) {
 function checkSentence(sentence) {
   check(sentence, {
     sentence: String,
-    annotations: [Match.Object],
+    annotations: Match.Object,
     spanAnnotations: [
       {
         begin: Number,
@@ -30,7 +30,7 @@ function checkSentence(sentence) {
 
 Meteor.methods({
   "sentences.insert"(sentence) {
-    checkSentence(sentence);
+    //checkSentence(sentence);
 
     // Make sure the user is logged in before inserting a task
     if (!this.userId) {
@@ -62,8 +62,8 @@ Meteor.methods({
   "sentences.addAnnotation"(sentenceId, name, value) {
     const obj = {};
     obj[name] = value;
-    Sentence.update(sentenceId, {
-      $push: obj
+    Sentences.update(sentenceId, {
+      $set: {annotations: obj}
     });
   },
   "sentences.removeAnnotation"(sentenceId, name, value) {
@@ -102,4 +102,31 @@ Meteor.methods({
       }
     );
   },
+  "sentences.removeAll"() {
+    Sentences.remove({});
+  },
+  "sentences.populateFromQuery"() {
+    if (Meteor.isServer) {
+      console.log(Sentences.find().fetch());
+      // make call
+      HTTP.post(Meteor.settings.public.defaultUrl, {
+          data: {
+            sentences: Sentences.find().fetch()
+          }
+        },
+        (err, resp) => {
+          if (err) {
+            return;
+          }
+          for (let [sentence, distance] of Object.entries(resp.data)) {
+            console.log("Adding sentence '", sentence, "', distance: ", distance);
+            Meteor.call("sentences.insert", {
+              sentence: sentence,
+              annotations: {relevant: false},
+              spanAnnotations: []
+            });
+          }
+        });
+    }
+  }
 });
