@@ -4,6 +4,8 @@
       "A",
       "B",
       "C"
-    ]
+    ],
+    "annotationLevel": "sentence",
+    "defaultUrl": "http://localhost:8000"
   }
 }
