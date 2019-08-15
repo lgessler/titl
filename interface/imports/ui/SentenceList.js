@@ -3,7 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { makeStyles } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
-import SpanAnnotatedSentence from "./SpanAnnotatedSentence";
+import SpanAnnotCard from "./SpanAnnotation/SpanAnnotCard";
 import SentenceAnnotatedSentence from "./SentenceAnnotatedSentence";
 
 export default function SentenceList(props) {
@@ -31,7 +31,7 @@ export default function SentenceList(props) {
             Meteor.settings.public.annotationLevel === "sentence" ? (
               <SentenceAnnotatedSentence sentence={s} key={s._id} />
             ) : (
-              <SpanAnnotatedSentence sentence={s} key={s._id} />
+              <SpanAnnotCard sentence={s} key={s._id} />
             )
           )}
     </Container>
