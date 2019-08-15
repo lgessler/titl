@@ -57,37 +57,21 @@ Meteor.methods({
     });
   },
   "sentences.remove"(sentenceId) {
-    console.log("HERE");
-    const currReadable = Sentences.findOne({ _id: sentenceId }).readableId;
-    console.log(currReadable);
+    const currReadable = Sentences.findOne(sentenceId).readableId;
     Sentences.find({
       readableId: { $gt: currReadable }
-    }).forEach(element => {
-      console.log(element);
-      Sentences.update(
-        { _id: element._id },
-        { $set: { ...element, readableId: element.readableId - 1 } }
-      );
-      console.log(Sentences.findOne({ _id: element._id }));
-    });
-    console.log(Sentences);
-    console.log("HERE2");
+    }).forEach(element =>
+      Sentences.update(element._id, {
+        $set: { ...element, readableId: element.readableId - 1 }
+      })
+    );
     Sentences.remove(sentenceId);
   },
   "sentences.addAnnotation"(sentenceId, type, value) {
-    Sentence.update(sentenceId, {
-      $push: { type, value }
-    });
+    Sentence.update(sentenceId, { $push: { type, value } });
   },
   "sentences.removeAnnotation"(sentenceId, type, value) {
-    Sentences.update(
-      {
-        _id: sentenceId
-      },
-      {
-        $pull: { annotations: { type, value } }
-      }
-    );
+    Sentences.update(sentenceId, { $pull: { annotations: { type, value } } });
   },
   "sentences.addSpanAnnotation"(sentenceId, type, begin, end) {
     check(sentenceId, String);
@@ -103,15 +87,9 @@ Meteor.methods({
     check(begin, Number);
     check(end, Number);
     check(type, String);
-    console.log("HERE");
-    Sentences.update(
-      {
-        _id: sentenceId
-      },
-      {
-        $pull: { spanAnnotations: { type, begin, end } }
-      }
-    );
+    Sentences.update(sentenceId, {
+      $pull: { spanAnnotations: { type, begin, end } }
+    });
   },
   "sentences.importFromTsv"(url, filename) {
     if (Meteor.isServer) {

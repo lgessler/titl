@@ -94,24 +94,23 @@ class SpanAnnotatedSentence extends Component {
   }
 
   handleSelection = () => {
-    // Grab Distance from Beginning to Node, if it Exists, Else 0
+    // Grabs Distance from Beginning to Node, if it Exists, Else 0
     function lenToLeft(node) {
-      if (!node) {
-        return 0;
-      }
-      const findToolbar = node =>
+      if (!node) return 0;
+
+      const toolbar =
         node &&
         node.lastChild &&
         node.lastChild.nodeName === "DIV" &&
         node.lastChild;
-      const toolbar = findToolbar(node);
-      const textLength = toolbar
-        ? node.textContent.length - toolbar.textContent.length
-        : node.textContent.length;
-      return textLength + lenToLeft(node.previousSibling);
+      return (
+        node.textContent.length -
+        (toolbar ? toolbar.textContent.length : 0) +
+        lenToLeft(node.previousSibling)
+      );
     }
 
-    // Grab Highest Parent Node Under SpanAnnotatedSentence
+    // Grabs Highest Parent Node Under SpanAnnotatedSentence
     const ascend = node => {
       while (
         node &&
@@ -150,6 +149,7 @@ class SpanAnnotatedSentence extends Component {
       // Interchange Begin and End To Proper Order, if Need Be
       if (selBegin > selEnd) [selBegin, selEnd] = [selEnd, selBegin];
 
+      // If There is Any Overlap with Other Highlights, Separate Them
       this.props.sentence.spanAnnotations.forEach(a => {
         if (
           (selBegin >= a.begin && selEnd <= a.end) ||
@@ -160,6 +160,7 @@ class SpanAnnotatedSentence extends Component {
         else if (selEnd >= a.begin && selEnd <= a.end) selEnd = a.begin;
       });
 
+      // Update the State
       this.setState({ selBegin, selEnd });
     }
 
@@ -167,12 +168,9 @@ class SpanAnnotatedSentence extends Component {
     this.clearSelection();
   };
 
-  toggleDelete = deleteHidden => {
-    this.setState({ deleteHidden });
-  };
+  toggleDelete = deleteHidden => this.setState({ deleteHidden });
 
   render() {
-    const { readableId } = this.props.sentence;
     return (
       <Card
         className={this.props.classes.card}
@@ -197,7 +195,7 @@ class SpanAnnotatedSentence extends Component {
             variant="subtitle2"
             className={this.props.classes.subtitle}
           >
-            {"Sentence #" + readableId}
+            {"Sentence #" + this.props.sentence.readableId}
           </Typography>
           <div
             className="sentence"
