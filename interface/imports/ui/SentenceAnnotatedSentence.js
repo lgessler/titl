@@ -30,7 +30,7 @@ const styles = theme => ({
   }
 });
 
-class SpanSentence extends Component {
+class SentenceAnnotatedSentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -39,6 +39,10 @@ class SpanSentence extends Component {
       selEnd: 0
     };
   }
+
+  toggleDelete = deleteHidden => {
+    this.setState({ deleteHidden });
+  };
 
   render() {
     const { readableId } = this.props.sentence;
@@ -64,14 +68,14 @@ class SpanSentence extends Component {
             variant="subtitle2"
             className={this.props.classes.subtitle}
           >
-            {"SpanSentence #" + readableId}
+            {"Sentence #" + readableId}
           </Typography>
           <div
             className="sentence"
             onKeyUp={this.handleSelection}
             onKeyDown={this.clearSelection}
           >
-            this.props.sentence.sentence
+            {this.props.sentence.sentence}
           </div>
         </CardContent>
       </Card>
@@ -79,4 +83,4 @@ class SpanSentence extends Component {
   }
 }
 
-export default withStyles(styles)(SpanSentence);
+export default withStyles(styles)(SentenceAnnotatedSentence);

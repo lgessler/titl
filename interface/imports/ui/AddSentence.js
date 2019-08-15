@@ -15,7 +15,7 @@ import Button from "@material-ui/core/Button";
 
 const styles = {
   fab: {
-    position: "absolute",
+    position: "fixed",
     bottom: "2rem",
     right: "2rem"
   }
@@ -41,7 +41,8 @@ class AddSentence extends Component {
     this.close();
     Meteor.call("sentences.insert", {
       sentence: this.state.text,
-      spanAnnotations: []
+      spanAnnotations: [],
+      annotations: []
     });
   };
 

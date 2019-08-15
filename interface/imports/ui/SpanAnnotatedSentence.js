@@ -30,7 +30,7 @@ const styles = theme => ({
   }
 });
 
-class SpanSentence extends Component {
+class SpanAnnotatedSentence extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -40,9 +40,9 @@ class SpanSentence extends Component {
     };
   }
 
-  // Returns HTML for Displaying SpanSentence
+  // Returns HTML for Displaying SpanAnnotatedSentence
   computeChildren() {
-    // Decompose SpanSentence Prop
+    // Decompose SpanAnnotatedSentence Prop
     let { sentence, spanAnnotations } = this.props.sentence;
 
     // Grab a Copy of spanAnnotations Array
@@ -105,7 +105,7 @@ class SpanSentence extends Component {
       return textLength + lenToLeft(node.previousSibling);
     }
 
-    // Grab Highest Parent Node Under SpanSentence
+    // Grab Highest Parent Node Under SpanAnnotatedSentence
     const ascend = node => {
       while (
         node &&
@@ -189,7 +189,7 @@ class SpanSentence extends Component {
             variant="subtitle2"
             className={this.props.classes.subtitle}
           >
-            {"SpanSentence #" + readableId}
+            {"Sentence #" + readableId}
           </Typography>
           <div
             className="sentence"
@@ -204,4 +204,4 @@ class SpanSentence extends Component {
   }
 }
 
-export default withStyles(styles)(SpanSentence);
+export default withStyles(styles)(SpanAnnotatedSentence);

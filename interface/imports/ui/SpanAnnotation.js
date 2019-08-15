@@ -20,7 +20,7 @@ const styles = theme => ({
     margin: theme.spacing(-0.3),
     padding: theme.spacing(0.3),
     '&:hover $savedToolbar': {
-      visibility: 'visible'
+      visibility: 'visible',
     }
   },
   selected: {
@@ -48,7 +48,9 @@ const styles = theme => ({
     display: "flex",
   },
   savedToolbar: {
-    visibility: "hidden"
+    visibility: "hidden",
+    transitionDelay: '300ms',
+    transitionProperty: 'visibility'
   },
 });
 
