@@ -156,7 +156,7 @@ Not activated if sentence selection is flagged.
 def split(sentence, idcs):
     '''Splits sentence into block and rest of sentence'''
     block = sentence[idcs[0]:idcs[1]]
-    rest_of_line = corpus_line[:idcs[0]] + ' ' + corpus_line[idcs[1]:]
+    rest_of_line = sentence[:idcs[0]] + ' ' + sentence[idcs[1]:]
     return [block, rest_of_line]
 
 def weightRestOfLine(unselected_corpus_line, unselected_input):
