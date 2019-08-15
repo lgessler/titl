@@ -14,8 +14,7 @@
     "classnames": "^2.2.6",
     "meteor-node-stubs": "^0.4.1",
     "react": "^16.8.0",
-    "react-dom": "^16.8.0",
-    "tsv": "^0.2.0"
+    "react-dom": "^16.8.0"
   },
   "meteor": {
     "mainModule": {

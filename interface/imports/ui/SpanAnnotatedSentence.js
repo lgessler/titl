@@ -51,6 +51,8 @@ class SpanAnnotatedSentence extends Component {
     // Set a Highlighted Annotation Based on State's selBegin/End
     if (this.state.selBegin !== this.state.selEnd)
       spanAnnotations.push({
+        name: "type",
+        value: "",
         begin: this.state.selBegin,
         end: this.state.selEnd,
         selected: true
@@ -67,7 +69,8 @@ class SpanAnnotatedSentence extends Component {
     const clearSelected = () => {
       this.setState({ selBegin: 0, selEnd: 0 });
     };
-    for (let { type, begin, end, selected } of spanAnnotations) {
+
+    for (let {value, begin, end, selected } of spanAnnotations.filter(x => x.type || x.selected)) {
       children.push(sentence.slice(lastIndex, begin));
       children.push(
         <SpanAnnotation
@@ -76,7 +79,7 @@ class SpanAnnotatedSentence extends Component {
           begin={begin}
           end={end}
           key={begin}
-          type={type}
+          type={value}
           clearSelected={selected && begin !== end && clearSelected}
         />
       );
@@ -94,24 +97,23 @@ class SpanAnnotatedSentence extends Component {
   }
 
   handleSelection = () => {
-    // Grab Distance from Beginning to Node, if it Exists, Else 0
+    // Grabs Distance from Beginning to Node, if it Exists, Else 0
     function lenToLeft(node) {
-      if (!node) {
-        return 0;
-      }
-      const findToolbar = node =>
+      if (!node) return 0;
+
+      const toolbar =
         node &&
         node.lastChild &&
         node.lastChild.nodeName === "DIV" &&
         node.lastChild;
-      const toolbar = findToolbar(node);
-      const textLength = toolbar
-        ? node.textContent.length - toolbar.textContent.length
-        : node.textContent.length;
-      return textLength + lenToLeft(node.previousSibling);
+      return (
+        node.textContent.length -
+        (toolbar ? toolbar.textContent.length : 0) +
+        lenToLeft(node.previousSibling)
+      );
     }
 
-    // Grab Highest Parent Node Under SpanAnnotatedSentence
+    // Grabs Highest Parent Node Under SpanAnnotatedSentence
     const ascend = node => {
       while (
         node &&
@@ -150,16 +152,19 @@ class SpanAnnotatedSentence extends Component {
       // Interchange Begin and End To Proper Order, if Need Be
       if (selBegin > selEnd) [selBegin, selEnd] = [selEnd, selBegin];
 
+      // If There is Any Overlap with Other Highlights, Separate Them
       this.props.sentence.spanAnnotations.forEach(a => {
         if (
           (selBegin >= a.begin && selEnd <= a.end) ||
           (selBegin <= a.begin && selEnd >= a.end)
         )
           selBegin = selEnd = 0;
+
         else if (selBegin >= a.begin && selBegin <= a.end) selBegin = a.end;
         else if (selEnd >= a.begin && selEnd <= a.end) selEnd = a.begin;
       });
 
+      // Update the State
       this.setState({ selBegin, selEnd });
     }
 
@@ -167,12 +172,9 @@ class SpanAnnotatedSentence extends Component {
     this.clearSelection();
   };
 
-  toggleDelete = deleteHidden => {
-    this.setState({ deleteHidden });
-  };
+  toggleDelete = deleteHidden => this.setState({ deleteHidden });
 
   render() {
-    const { readableId } = this.props.sentence;
     return (
       <Card
         className={this.props.classes.card}
@@ -197,7 +199,7 @@ class SpanAnnotatedSentence extends Component {
             variant="subtitle2"
             className={this.props.classes.subtitle}
           >
-            {"Sentence #" + readableId}
+            {"Sentence #" + this.props.sentence.readableId}
           </Typography>
           <div
             className="sentence"
