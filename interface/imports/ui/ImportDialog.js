@@ -13,7 +13,6 @@ export default function ImportDialog(props) {
   const [filename, setFilename] = useState("");
 
   function beginUpload () {
-    Meteor.call('sentences.importFromTsv', undefined, filename);
     props.setImportOpen(false);
   }
 

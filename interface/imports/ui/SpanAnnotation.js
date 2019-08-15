@@ -19,8 +19,8 @@ const styles = theme => ({
     borderRadius: "0.7rem",
     margin: theme.spacing(-0.3),
     padding: theme.spacing(0.3),
-    '&:hover $savedToolbar': {
-      visibility: 'visible',
+    "&:hover $savedToolbar": {
+      visibility: "visible"
     }
   },
   selected: {
@@ -49,9 +49,9 @@ const styles = theme => ({
   },
   savedToolbar: {
     visibility: "hidden",
-    transitionDelay: '300ms',
-    transitionProperty: 'visibility'
-  },
+    transitionDelay: "300ms",
+    transitionProperty: "visibility"
+  }
 });
 
 class SpanAnnotation extends Component {
@@ -61,46 +61,44 @@ class SpanAnnotation extends Component {
       type: this.props.type || "",
       toolbarVisible: false
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.stopBubbling = this.stopBubbling.bind(this);
-    this.saveAndClear = this.saveAndClear.bind(this);
-    this.deleteAnnotation = this.deleteAnnotation.bind(this);
   }
 
-  handleChange(e) {
+  // Updates Selected Type
+  handleChange = e =>
     this.setState({
       type: e.target.value
     });
-  }
 
-  stopBubbling(e) {
-    e.stopPropagation();
-  }
+  // Prevents Multiple Handling of Same Action
+  stopBubbling = e => e.stopPropagation();
 
-  saveAndClear(e) {
+  // Adds spanAnnot and Clears the Highlight
+  saveAndClear = () => {
     Meteor.call(
       "sentences.addSpanAnnotation",
       this.props.sentenceId,
       this.props.begin,
       this.props.end,
+      "type",
       this.state.type
     );
     this.props.clearSelected();
-  }
+  };
 
-  deleteAnnotation(e) {
+  // Removes the spanAnnot
+  deleteAnnotation = () =>
     Meteor.call(
       "sentences.removeSpanAnnotation",
       this.props.sentenceId,
       this.props.begin,
-      this.props.end,
-      this.state.type
+      this.props.end
     );
-  }
 
   render() {
+    // Types of Annotations to Be Selected From
     const types = Meteor.settings.public.spanAnnotationTypes;
 
+    // Coloring for Check and X Buttons
     const redGreenTheme = createMuiTheme({
       palette: {
         secondary: red,
@@ -108,6 +106,7 @@ class SpanAnnotation extends Component {
       }
     });
 
+    // Toolbar Used When Unsaved Highlight Selected
     const selectedToolbar = (
       <div
         className={this.props.classes.toolbar}
@@ -157,6 +156,7 @@ class SpanAnnotation extends Component {
       </div>
     );
 
+    // Toolbar Used When Saved Highlight is Hovered
     const savedToolbar = (
       <div
         className={classNames(
@@ -201,6 +201,7 @@ class SpanAnnotation extends Component {
       </div>
     );
 
+    // Determines Toolbar to Be Displayed
     const toolbar = this.props.clearSelected ? selectedToolbar : savedToolbar;
 
     return (
@@ -212,8 +213,6 @@ class SpanAnnotation extends Component {
               ? this.props.classes.selected
               : this.props.classes.saved
           )}
-          //onMouseEnter={() => this.setState({toolbarVisible: true})}
-          //onMouseLeave={() => this.setState({toolbarVisible: false})}
         >
           {this.props.text}
           {toolbar}
