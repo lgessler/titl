@@ -1,7 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { HTTP } from "meteor/http";
 import { Mongo } from "meteor/mongo";
-import { check } from "meteor/check";
+import { check, Match } from "meteor/check";
 
 export const Sentences = new Mongo.Collection("sentences");
 
@@ -16,25 +16,15 @@ if (Meteor.isServer) {
 function checkSentence(sentence) {
   check(sentence, {
     sentence: String,
-    annotations: [
-      {
-        name: String,
-        value: {
-          begin: Number,
-          end: Number
-        }
-      }
-    ],
+    annotations: [Match.Object],
     spanAnnotations: [
       {
+        begin: Number,
+        end: Number,
         name: String,
-        value: {
-          begin: Number,
-          end: Number
-        }
+        value: String
       }
-    ],
-    zScore: Number
+    ]
   });
 }
 
@@ -62,53 +52,46 @@ Meteor.methods({
     Sentences.remove(sentenceId);
   },
   "sentences.addAnnotation"(sentenceId, name, value) {
+    const obj = {};
+    obj[name] = value;
     Sentence.update(sentenceId, {
-      $push: { name, value }
+      $push: obj
     });
   },
   "sentences.removeAnnotation"(sentenceId, name, value) {
+    const obj = {};
+    obj[name] = value;
     Sentences.update(
       {
         _id: sentenceId
       },
       {
-        $pull: { annotations: { name, value } }
+        $pull: { annotations: obj }
       }
     );
   },
-  "sentences.addSpanAnnotation"(sentenceId, begin, end, type) {
+  "sentences.addSpanAnnotation"(sentenceId, begin, end, name, value) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
-    check(type, String);
+    check(name, String);
+    const obj = {};
+    obj[name] = value;
     Sentences.update(sentenceId, {
-      $push: { spanAnnotations: { name: type, value: { begin, end } } }
+      $push: { spanAnnotations: { ...obj, begin, end }}
     });
   },
-  "sentences.removeSpanAnnotation"(sentenceId, begin, end, type) {
+  "sentences.removeSpanAnnotation"(sentenceId, begin, end) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
-    check(type, String);
     Sentences.update(
       {
         _id: sentenceId
       },
       {
-        $pull: { spanAnnotations: { name: type, value: { begin, end } } }
+        $pull: { spanAnnotations: { begin, end }}
       }
     );
-  },
-  "sentences.importFromTsv"(url, filename) {
-    if (Meteor.isServer) {
-      url = url || Meteor.settings.public.defaultUrl;
-      HTTP.call('GET', url + '/' + filename, {}, (err, resp) => {
-        const lines = [];
-        for (let line of resp.contents.trim().split("\n")) {
-          lines.push(line.split("\t"));
-        }
-        console.log(lines);
-      });
-    }
   }
 });

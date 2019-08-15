@@ -51,13 +51,16 @@ class SpanAnnotatedSentence extends Component {
     // Set a Highlighted Annotation Based on State's selBegin/End
     if (this.state.selBegin !== this.state.selEnd)
       spanAnnotations.push({
-        value: { begin: this.state.selBegin, end: this.state.selEnd },
+        name: "type",
+        value: "",
+        begin: this.state.selBegin,
+        end: this.state.selEnd,
         selected: true
       });
 
     // Sort All Annotations Based on Begin
     spanAnnotations.sort((old, a) => {
-      return old.value.begin - a.value.begin;
+      return old.begin - a.begin;
     });
 
     // Iterate Through All Span Annotations, Highlighting Those Selected
@@ -66,20 +69,21 @@ class SpanAnnotatedSentence extends Component {
     const clearSelected = () => {
       this.setState({ selBegin: 0, selEnd: 0 });
     };
-    for (let { value, type, selected } of spanAnnotations) {
-      children.push(sentence.slice(lastIndex, value.begin));
+
+    for (let {value, begin, end, selected } of spanAnnotations.filter(x => x.type || x.selected)) {
+      children.push(sentence.slice(lastIndex, begin));
       children.push(
         <SpanAnnotation
-          text={sentence.slice(value.begin, value.end)}
+          text={sentence.slice(begin, end)}
           sentenceId={this.props.sentence._id}
-          begin={value.begin}
-          end={value.end}
-          key={value.begin}
-          type={type}
-          clearSelected={selected && value.begin !== value.end && clearSelected}
+          begin={begin}
+          end={end}
+          key={begin}
+          type={value}
+          clearSelected={selected && begin !== end && clearSelected}
         />
       );
-      lastIndex = value.end;
+      lastIndex = end;
     }
     children.push(sentence.slice(lastIndex));
 
@@ -151,14 +155,14 @@ class SpanAnnotatedSentence extends Component {
 
       this.props.sentence.spanAnnotations.forEach(a => {
         if (
-          (selBegin >= a.value.begin && selEnd <= a.value.end) ||
-          (selBegin <= a.value.begin && selEnd >= a.value.end)
+          (selBegin >= a.begin && selEnd <= a.end) ||
+          (selBegin <= a.begin && selEnd >= a.end)
         )
           selBegin = selEnd = 0;
-        else if (selBegin >= a.value.begin && selBegin <= a.value.end)
-          selBegin = a.value.end;
-        else if (selEnd >= a.value.begin && selEnd <= a.value.end)
-          selEnd = a.value.begin;
+        else if (selBegin >= a.begin && selBegin <= a.end)
+          selBegin = a.end;
+        else if (selEnd >= a.begin && selEnd <= a.end)
+          selEnd = a.begin;
       });
 
       this.setState({ selBegin, selEnd });

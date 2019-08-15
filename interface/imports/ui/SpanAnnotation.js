@@ -83,6 +83,7 @@ class SpanAnnotation extends Component {
       this.props.sentenceId,
       this.props.begin,
       this.props.end,
+      "type",
       this.state.type
     );
     this.props.clearSelected();
@@ -93,8 +94,7 @@ class SpanAnnotation extends Component {
       "sentences.removeSpanAnnotation",
       this.props.sentenceId,
       this.props.begin,
-      this.props.end,
-      this.state.type
+      this.props.end
     );
   }
 
