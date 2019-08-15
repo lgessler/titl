@@ -45,9 +45,6 @@ def validate_arguments(args,parser):
     if not args.corpus:
         print('Please provide a corpus to search in.')
         success = False
-    if args.string == '*':
-        print('Don\'t do that (use * as your pattern)' )
-        success = False
     if not (args.words or args.morphemes or args.discont):
         print('Default: Treating the entire sentence as pattern.')
     if not success:
@@ -82,7 +79,7 @@ def get_sentences_pattern(string, indices):
 The pattern to match is one or more contiguous words.
 '''
 def get_words_pattern(string, indices, fuzzy=False):
-    substr = string[indices[0]:indices[1]+1]
+    substr = re.escape(string[indices[0]:indices[1]+1])
     pattern = r'\b'+substr+r'\b' if not fuzzy else substr # \b is word boundary
     return pattern
 
@@ -90,27 +87,35 @@ def get_words_pattern(string, indices, fuzzy=False):
 The pattern to match is one or more contiguous morphemes.
 '''
 def get_morphemes_pattern(string, indices, fuzzy=False):
-    substr = string[indices[0]:indices[1]+1]
+    substr = re.escape(string[indices[0]:indices[1]+1])
     pattern = r'\B'+substr+'|'+substr+r'\B' if not fuzzy else substr
     return pattern
 
 '''
 The pattern to match is a discontinuous span.
 '''
-def get_discont_span_pattern(strings, list_of_index_pairs):
-    pattern = strings[0]
-    return pattern
+def get_discont_span_pattern(string, list_of_index_pairs,fuzzy=False):
+    substrs = []
+    for pair in list_of_index_pairs:
+        substrs.append(string[pair[0]:pair[1]+1])
+    if not fuzzy:
+        pattern = ''
+        for s in substrs:
+            pattern += r'.*('+re.escape(s)+')'
+        return r''+pattern+r'.*'
+    return substrs
 
 def simpleMatch(corpus, pattern):
     results = []
-    regex = re.compile(pattern,re.I)
+    regex = re.compile(r''+pattern,re.I)
     for ln in corpus:
         norm_ln = normalize(ln)
         matches = list(re.finditer(regex, norm_ln))
         if matches:
             match_spans = []
             for m in matches:
-                match_spans.append(m.span())
+                for span in m.regs:
+                    match_spans.append(span)
             results.append((norm_ln,match_spans))
             print(norm_ln)
     return results
@@ -146,24 +151,68 @@ def tryProcess(corpus, pattern):
 # SPLITTING and WEIGHTING FUNCTIONS ##########################################################
 
 '''
-Activated if all but sentence selection is flagged.
+Not activated if sentence selection is flagged.
 '''
+def split(sentence, idcs):
+    '''Splits sentence into block and rest of sentence'''
+    block = sentence[idcs[0]:idcs[1]]
+    rest_of_line = sentence[:idcs[0]] + ' ' + sentence[idcs[1]:]
+    return [block, rest_of_line]
 
-#def splitCorpusString(corpus_line,len(selected_unit)):
-#    '''Splits corpus strings.'''
-#    split1 = corpus_line[]
-        
+def weightRestOfLine(unselected_corpus_line, unselected_input):
+    #do not penalize free word order
+    token_score = fuzz.token_sort_ratio(unselected_corpus_line, unselected_input)
+    #do not penalize repetitions
+    set_score = fuzz.token_set_ratio(unselected_corpus_line, unselected_input)
+    return (token_score/2) + (set_score)/2
+
+def weightedFuzzymatch(split_corpusline, split_queryline):
+    selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
+    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    return weightSubunits(selected_score, unselected_score)
+
+def weightedSimplematch(split_corpusline, split_queryline):
+    '''Matches query to matched block and rest of sentences to each other'''
+    selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
+    if selected_score < 100:
+        return 0
+    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    return weightSubunits(selected_score, unselected_score)
+
 def weightSubunits(selected_match_score, unselected_match_score):
     '''Takes similar scores for substring/subword units.
     Gives higher weights to selected subunit.
     Returns combined score.'''
-    selected_weight = .6
-    unselected_weight = .4
-
+    selected_weight = .75
+    unselected_weight = .25
     weight1 = selected_match_score * selected_weight
     weight2 = unselected_match_score * unselected_weight
-
     return weight1 + weight2
+
+
+def weightedMatch(corpus, input_string, query_idcs, fuzzy=True):
+    '''split, match splits, and weight score.
+    Returns list of match sentences'''
+    weighted_matches = []
+    split_string = split(input_string,query_idcs)
+    #[(corpus line, ratio, (matched_block_indices))]
+    partial_matches = process.extract(split_string[0], corpus, scorer=fuzz.partial_ratio)
+    for match in partial_matches:
+        weighted_score = 0
+        if match[1] >= 80:
+            if fuzzy:
+                split_match = split(match[0], match[2])
+                weighted_score = weightedFuzzymatch(split_match, split_string)
+            else:
+                norm_match = match[0].lower()
+                split_match = split(norm_match, match[2])
+                weighted_score = weightedSimplematch(split_match, split_string)
+
+            if weighted_score >= 80:
+                weighted_matches.append(match[0])
+                print(weighted_score, match[0].strip('\n'))
+
+    return weighted_matches
 
 # MAIN FUNCTIONS ##############################################################
 '''
@@ -181,11 +230,17 @@ def main(args):
     elif args.discont:
         p = get_discont_span_pattern(s,indices,args.fuzzy)
     else:
-        p = get_sentences_pattern(s,indices[0],args.fuzzy)
+        p = get_sentences_pattern(s,indices[0])
     if args.fuzzy:
-        matches = fuzzyMatch(corpus, p)
+        if args.sentence:
+            matches = fuzzyMatch(corpus, s)
+        else:
+            matches = weightedmatch(corpus, s, args.indices)
     else:
-        matches = simpleMatch(corpus, p)
+        if args.sentence:
+            matches = simpleMatch(corpus, s)
+        else:
+            matches = weightedmatch(corpus, s, args.indices, fuzzy=False)
 #    print("testing process function from fuzzywuzzy")
 #    tryProcess(corpus, s)
     # matches = []

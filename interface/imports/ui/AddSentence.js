@@ -41,7 +41,7 @@ class AddSentence extends Component {
     this.close();
     Meteor.call("sentences.insert", {
       sentence: this.state.text,
-      annotations: [],
+      annotations: {},
       spanAnnotations: []
     });
   };
