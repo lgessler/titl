@@ -36,8 +36,10 @@ def compute():
     global all_lines, all_vectors, tree
     given_lines = []
 
+    print("Got a request:")
+    print(request.json)
     if request.json['sentences']:
-        sentences = [sentence['text'] for sentence in request.json['sentences'] if sentence['relevant']]
+        sentences = [sentence['sentence'] for sentence in request.json['sentences'] if sentence['annotations']['relevant']]
         given_lines += sentences
     else:
         raise Exception("no input")
