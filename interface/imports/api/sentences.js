@@ -2,8 +2,6 @@ import { Meteor } from "meteor/meteor";
 import { HTTP } from 'meteor/http'
 import { Mongo } from "meteor/mongo";
 import { check, Match } from "meteor/check";
-import {TSV} from 'tsv';
-import {fs} from 'fs';
 
 export const Sentences = new Mongo.Collection("sentences");
 
@@ -90,12 +88,14 @@ Meteor.methods({
     );
   },
   "sentences.importFromTsv"(url, filename) {
-    url = url || Meteor.settings.public.defaultUrl;
     if (Meteor.isServer) {
+      url = url || Meteor.settings.public.defaultUrl;
       HTTP.call('GET', url + '/' + filename, {}, (err, resp) => {
-        console.log(err, resp);
-        const tsv = TSV.parse(resp);
-        console.log(tsv);
+        const lines = [];
+        for (let line of resp.contents.trim().split("\n")) {
+          lines.push(line.split("\t"));
+        }
+        console.log(lines);
       });
     }
   }
