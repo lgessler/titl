@@ -6,7 +6,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import grey from '@material-ui/core/colors/grey';
+import grey from "@material-ui/core/colors/grey";
 
 import SpanAnnotation from "./SpanAnnotation";
 import FormControl from "@material-ui/core/FormControl";
@@ -20,7 +20,7 @@ const styles = theme => ({
     paddingTop: theme.spacing(5),
     margin: theme.spacing(2),
     position: "relative",
-    overflow: "visible",
+    overflow: "visible"
   },
   subtitle: {
     position: "absolute",
@@ -69,7 +69,10 @@ class SentenceAnnotatedSentence extends Component {
               size="small"
               className={this.props.classes.remove}
               onClick={() => {
-                Meteor.call("sentences.remove", this.props.sentence._id);
+                Meteor.call(
+                  "sentences.removeAnnotation",
+                  this.props.sentence._id
+                );
               }}
             >
               <CancelIcon />

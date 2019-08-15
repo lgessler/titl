@@ -159,10 +159,9 @@ class SpanAnnotatedSentence extends Component {
           (selBegin <= a.begin && selEnd >= a.end)
         )
           selBegin = selEnd = 0;
-        else if (selBegin >= a.begin && selBegin <= a.end)
-          selBegin = a.end;
-        else if (selEnd >= a.begin && selEnd <= a.end)
-          selEnd = a.begin;
+
+        else if (selBegin >= a.begin && selBegin <= a.end) selBegin = a.end;
+        else if (selEnd >= a.begin && selEnd <= a.end) selEnd = a.begin;
       });
 
       this.setState({ selBegin, selEnd });

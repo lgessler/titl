@@ -49,6 +49,21 @@ Meteor.methods({
     });
   },
   "sentences.remove"(sentenceId) {
+    console.log("HERE");
+    const currReadable = Sentences.findOne({ _id: sentenceId }).readableId;
+    console.log(currReadable);
+    Sentences.find({
+      readableId: { $gt: currReadable }
+    }).forEach(element => {
+      console.log(element);
+      Sentences.update(
+        { _id: element._id },
+        { $set: { ...element, readableId: element.readableId - 1 } }
+      );
+      console.log(Sentences.findOne({ _id: element._id }));
+    });
+    console.log(Sentences);
+    console.log("HERE2");
     Sentences.remove(sentenceId);
   },
   "sentences.addAnnotation"(sentenceId, name, value) {
@@ -93,5 +108,5 @@ Meteor.methods({
         $pull: { spanAnnotations: { begin, end }}
       }
     );
-  }
+  },
 });
