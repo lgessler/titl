@@ -46,8 +46,11 @@ def validate_arguments(args,parser):
     if not args.corpus:
         print('Please provide a corpus to search in.')
         success = False
-    if not (args.words or args.morphemes or args.discont):
-        print('Default: Treating the entire sentence as pattern.')
+    if not (args.words or args.morphemes or args.discont or args.sentence):
+        print('Please provide a flag for search type: entire sentence -l, '
+              'one or more continuous words -w, '
+              'one or more continuous morphemes -m.')
+        success = False
     if not success:
         print('\n')
         parser.print_help()
@@ -74,7 +77,7 @@ def normalize(s):
 The pattern to match is the entire sentence.
 '''
 def get_sentences_pattern(string, indices):
-    return string[indices[0]:indices[1]+1]
+    return r'^'+string[indices[0]:indices[1]+1]+r'$'
 
 '''
 The pattern to match is one or more contiguous words.
@@ -136,19 +139,19 @@ def fuzzyMatch(corpus, pattern):
     matches = []
     for ln in corpus:
         score = compareLine(ln,pattern)
-    # partialRatioResult returns the same number as partialRatio but also the indices
-    # of where the match was found.
-    #partialRatioResult = fuzz.custom_get_blocks(pattern,norm_ln)
-    #tokenSetRatio = fuzz.token_set_ratio(pattern, norm_ln)
+        # partialRatioResult returns the same number as partialRatio but also the indices
+        # of where the match was found.
+        #partialRatioResult = fuzz.custom_get_blocks(pattern,norm_ln)
+        #tokenSetRatio = fuzz.token_set_ratio(pattern, norm_ln)
 
-    if score >= 80:
-        matches.append((ln,score))
-        print(partialRatio, norm_ln.strip('\n'))
+        if score >= 80:
+            matches.append((ln,score))
+            print(score, ln.strip('\n'))
 
-#    elif tokenSetRatio >= 80:
-#        print("----------- token set ratio ------------")
-#        matches.append(ln)
-#        print(tokenSetRatio, norm_ln.strip('\n'))
+    #    elif tokenSetRatio >= 80:
+    #        print("----------- token set ratio ------------")
+    #        matches.append(ln)
+    #        print(tokenSetRatio, norm_ln.strip('\n'))
             
     return matches
 
@@ -176,20 +179,15 @@ def compareLines(unselected_corpus_line, unselected_input):
     set_score = fuzz.token_set_ratio(unselected_corpus_line, unselected_input)
     return (token_score/2) + (set_score)/2
 
-def weightedFuzzymatch(split_corpusline, split_queryline):
-    selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
-    unselected_score = compareLines(split_corpusline[1], split_queryline[1])
-    return weightSubunits(selected_score, unselected_score)
-
 def weightedSimplematch(split_corpusline, split_queryline):
     '''Matches query to matched block and rest of sentences to each other'''
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
     if selected_score < 100:
         return 0
     unselected_score = compareLines(split_corpusline[1], split_queryline[1])
-    return weightSubunits(selected_score, unselected_score)
+    return weight(selected_score, unselected_score)
 
-def weightSubunits(selected_match_score, unselected_match_score):
+def weight(selected_match_score, unselected_match_score):
     '''Takes similar scores for substring/subword units.
     Gives higher weights to selected subunit.
     Returns combined score.'''
@@ -202,8 +200,7 @@ def weightSubunits(selected_match_score, unselected_match_score):
 def weightedFuzzymatch(split_corpusline, split_queryline):
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
     unselected_score = compareLine(split_corpusline[1], split_queryline[1])
-    return weightSubunits(selected_score, unselected_score)
-
+    return weight(selected_score, unselected_score)
 
 def weightedMatch(corpus, input_string, query, fuzzy):
     '''split, match splits, and weight score.
@@ -218,14 +215,14 @@ def weightedMatch(corpus, input_string, query, fuzzy):
                 split_line = split(match[0], match[2])
                 weighted_score = weightedFuzzymatch(split_line, split_string)
                 if weighted_score >= 80:
-                    weighted_matches.append(match[0], weighted_score)
+                    weighted_matches.append((match[0], weighted_score))
     else:
-        span_matches = simpleMatch(corpus, query)
+        span_matches = simpleMatch(corpus, input_string)
         for match in span_matches:
             line_similarity = compareLine(input_string, span_matches[0])
-            weighted_score = weight(span_matches[1],line_similarity)
+            weighted_score = weight(match[1],line_similarity)
             if weighted_score >= 80:
-                weighted_matches.append(span_matches[0],weighted_score)
+                weighted_matches.append((span_matches[0],weighted_score))
                 print(weighted_score, match[0].strip('\n'))
 
     return weighted_matches
