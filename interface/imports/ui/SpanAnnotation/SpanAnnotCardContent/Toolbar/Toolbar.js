@@ -50,7 +50,8 @@ class Toolbar extends Component {
       this.props.begin,
       this.props.end,
       "type",
-      this.state.type
+      this.state.type,
+      false
     );
     this.props.clearSelected();
   };

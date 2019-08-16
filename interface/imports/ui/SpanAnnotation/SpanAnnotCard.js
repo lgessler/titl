@@ -58,6 +58,7 @@ class SpanAnnotCard extends Component {
         value: "",
         begin: this.state.selBegin,
         end: this.state.selEnd,
+        checked: false,
         selected: true
       });
 
@@ -104,6 +105,18 @@ class SpanAnnotCard extends Component {
     return children;
   };
 
+  // Grabs Highest Parent Node Under SpanAnnotatedSentence
+  ascend = node => {
+    while (
+      node &&
+      node.parentNode.className !== "sentence" &&
+      !node.parentNode.className.includes(this.props.classes.card)
+    )
+      node = node.parentNode;
+
+    return node;
+  };
+
   handleSelection = () => {
     // Grabs Distance from Beginning to Node, if it Exists, Else 0
     function lenToLeft(node) {
@@ -121,24 +134,12 @@ class SpanAnnotCard extends Component {
       );
     }
 
-    // Grabs Highest Parent Node Under SpanAnnotatedSentence
-    const ascend = node => {
-      while (
-        node &&
-        node.parentNode.className !== "sentence" &&
-        !node.parentNode.className.includes(this.props.classes.card)
-      )
-        node = node.parentNode;
-
-      return node;
-    };
-
     // Grab and Clear User's Selection
     const sel = window.getSelection();
 
     // Set Begin/End Accordingly by Offset and Length to Left of Original Text
-    const ascSelAnchor = ascend(sel.anchorNode);
-    const ascSelFocus = ascend(sel.focusNode);
+    const ascSelAnchor = this.ascend(sel.anchorNode);
+    const ascSelFocus = this.ascend(sel.focusNode);
     let selBegin =
       sel.anchorOffset +
       lenToLeft(ascSelAnchor ? ascSelAnchor.previousSibling : null);
@@ -197,7 +198,10 @@ class SpanAnnotCard extends Component {
         onMouseLeave={this.toggleDelete}
       >
         <Card className={this.props.classes.highlightSelection}>
-          <HighLightSelection sentence={this.props.sentence} />
+          <HighLightSelection
+            sentence={this.props.sentence}
+            forceUpdate={() => this.forceUpdate()}
+          />
         </Card>
         <CardContent>
           <SpanAnnotCardDelete

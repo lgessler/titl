@@ -79,15 +79,16 @@ Meteor.methods({
       }
     );
   },
-  "sentences.addSpanAnnotation"(sentenceId, begin, end, name, value) {
+  "sentences.addSpanAnnotation"(sentenceId, begin, end, name, value, checked) {
     check(sentenceId, String);
     check(begin, Number);
     check(end, Number);
     check(name, String);
+    check(checked, Boolean);
     const obj = {};
     obj[name] = value;
     Sentences.update(sentenceId, {
-      $push: { spanAnnotations: { ...obj, begin, end, checked: false } }
+      $push: { spanAnnotations: { ...obj, begin, end, checked } }
     });
   },
   "sentences.removeSpanAnnotation"(sentenceId, begin, end) {
@@ -100,6 +101,24 @@ Meteor.methods({
       },
       {
         $pull: { spanAnnotations: { begin, end } }
+      }
+    );
+  },
+  "sentences.updateSpanChecked"(sentenceId, begin, checked) {
+    check(sentenceId, String);
+    check(checked, Boolean);
+    Sentences.update(
+      {
+        _id: sentenceId
+      },
+      {
+        $set: {
+          spanAnnotations: [
+            ...Sentences.findOne({ _id: sentenceId }).spanAnnotations.map(s =>
+              s.begin === begin ? { ...s, checked } : s
+            )
+          ]
+        }
       }
     );
   },

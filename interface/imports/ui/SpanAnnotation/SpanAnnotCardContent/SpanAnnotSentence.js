@@ -39,7 +39,7 @@ class SpanAnnotSentence extends Component {
       <span
         className={this.props.classes.spanAnnotation}
         style={{
-          backgroundColor: this.props.clearSelected
+          backgroundColor: !this.props.type
             ? red["300"]
             : green[this.props.checked ? "300" : "100"]
         }}
@@ -58,6 +58,7 @@ class SpanAnnotSentence extends Component {
           onKeyUp={this.stopBubbling}
         >
           <Toolbar
+            sentence={this.props.sentence}
             sentenceId={this.props.sentenceId}
             begin={this.props.begin}
             end={this.props.end}

@@ -18,9 +18,13 @@ const styles = theme => ({
 
 class HighlightSelection extends Component {
   handleCheck = (beginIdx, checked) => {
-    this.props.sentence.spanAnnotations = this.props.sentence.spanAnnotations.map(
-      e => (e.begin === beginIdx ? { ...e, checked } : e)
+    Meteor.call(
+      "sentences.updateSpanChecked",
+      this.props.sentence._id,
+      beginIdx,
+      checked
     );
+    this.props.forceUpdate();
   };
 
   render() {
