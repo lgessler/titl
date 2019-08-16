@@ -19,6 +19,7 @@ from myfuzzywuzzy import fuzz
 from myfuzzywuzzy import process
 
 
+
 # REPORT FORMATTING PARAMETERS ################################################
 
 MAX_LINE_WIDTH = 120
@@ -159,7 +160,7 @@ def split(sentence, idcs):
     rest_of_line = sentence[:idcs[0]] + ' ' + sentence[idcs[1]:]
     return [block, rest_of_line]
 
-def weightRestOfLine(unselected_corpus_line, unselected_input):
+def compareLines(unselected_corpus_line, unselected_input):
     #do not penalize free word order
     token_score = fuzz.token_sort_ratio(unselected_corpus_line, unselected_input)
     #do not penalize repetitions
@@ -168,7 +169,7 @@ def weightRestOfLine(unselected_corpus_line, unselected_input):
 
 def weightedFuzzymatch(split_corpusline, split_queryline):
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
-    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    unselected_score = compareLines(split_corpusline[1], split_queryline[1])
     return weightSubunits(selected_score, unselected_score)
 
 def weightedSimplematch(split_corpusline, split_queryline):
@@ -176,7 +177,7 @@ def weightedSimplematch(split_corpusline, split_queryline):
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
     if selected_score < 100:
         return 0
-    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    unselected_score = compareLines(split_corpusline[1], split_queryline[1])
     return weightSubunits(selected_score, unselected_score)
 
 def weightSubunits(selected_match_score, unselected_match_score):
@@ -233,14 +234,14 @@ def main(args):
         p = get_sentences_pattern(s,indices[0])
     if args.fuzzy:
         if args.sentence:
-            matches = fuzzyMatch(corpus, s)
+            matches = fuzzyMatch(corpus, p)
         else:
-            matches = weightedmatch(corpus, s, args.indices)
+            matches = weightedMatch(corpus, p, args.indices)
     else:
         if args.sentence:
-            matches = simpleMatch(corpus, s)
+            matches = simpleMatch(corpus, p)
         else:
-            matches = weightedmatch(corpus, s, args.indices, fuzzy=False)
+            matches = weightedMatch(corpus, p, args.indices, fuzzy=False)
 #    print("testing process function from fuzzywuzzy")
 #    tryProcess(corpus, s)
     # matches = []
@@ -270,7 +271,9 @@ if __name__ == '__main__':
         '''),
         epilog=textwrap.dedent('''\
         Examples:
-            %(prog)s STRING CORPUS   # take a string and return matches from the corpus
+            %(prog)s -s hiiko -i "0-2" -c ../../Arapaho-test.txt -o output.txt -m # take a sentence, indices
+             for the query substring, and return matches from the corpus   # search for the morpheme
+             'hii' in the file Arapaho-test.txt
         '''))
     parser.add_argument('-s', '--string',
                         help='string in which the pattern was highlighted')
@@ -282,7 +285,7 @@ if __name__ == '__main__':
                         help='search for one or more contiguous morphemes')
     parser.add_argument('-d', '--discont', action='store_true',
                         help='search for a discontinuous span')
-    parser.add_argument('-l', '--sentence', action='store_false',
+    parser.add_argument('-l', '--sentence', action='store_true',
                         help='search for an entire sentence')
     parser.add_argument('-c', '--corpus',
                         help='corpus to find matches in')
