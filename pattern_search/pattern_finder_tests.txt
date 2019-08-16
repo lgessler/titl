@@ -1,0 +1,6 @@
+python pattern_finder.py -s hiiko -i 0-4 -l
+python pattern_finder.py -s hiiko neihoowbeetniibei'i -i 0-4 -w
+python pattern_finder.py -s hiiko -i 0-1 -m
+python pattern_finder.py -s hiiko -i 0-4 -l -f
+python pattern_finder.py -s hiiko neihoowbeetniibei'i -i 0-4 -w -f
+python pattern_finder.py -s hiiko -i 0-1 -m -f
