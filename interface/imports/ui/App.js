@@ -3,11 +3,11 @@ import { Meteor } from "meteor/meteor";
 import { withTracker } from "meteor/react-meteor-data";
 import { createMuiTheme } from "@material-ui/core/styles";
 import { ThemeProvider, makeStyles } from "@material-ui/styles";
-import {CssBaseline} from "@material-ui/core";
+import { CssBaseline } from "@material-ui/core";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Button from "@material-ui/core/Button";
-import MenuIcon from "@material-ui/icons/Menu"
+import MenuIcon from "@material-ui/icons/Menu";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 
@@ -16,6 +16,7 @@ import AccountsUIWrapper from "./AccountsUIWrapper.js";
 import AddSentence from "./AddSentence.js";
 import Sidebar from "./Sidebar.js";
 import InteractiveQuerySession from "./InteractiveQuerySession";
+import SentenceList from "./SentenceList";
 
 function App(props) {
   const theme = createMuiTheme();
@@ -45,8 +46,12 @@ function App(props) {
   }));
   const styles = useStyles();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-  function handleDrawerOpen() {setDrawerOpen(true);}
-  function handleDrawerClose() {setDrawerOpen(false);}
+  function handleDrawerOpen() {
+    setDrawerOpen(true);
+  }
+  function handleDrawerClose() {
+    setDrawerOpen(false);
+  }
 
   //className={clsx(open && classes.hide)}
   return (
@@ -80,13 +85,23 @@ function App(props) {
             </Button>
           </Toolbar>
         </AppBar>
-        <Sidebar drawerOpen={drawerOpen} handleDrawerClose={handleDrawerClose} />
+        <Sidebar
+          drawerOpen={drawerOpen}
+          handleDrawerClose={handleDrawerClose}
+        />
 
         {props.currentUser ? (
-          <InteractiveQuerySession
-            sentences={props.sentences}
-            currentUser={props.currentUser}
-          />
+          Meteor.settings.public.annotationLevel === "sentence" ? (
+            <InteractiveQuerySession
+              sentences={props.sentences}
+              currentUser={props.currentUser}
+            />
+          ) : (
+            <SentenceList
+              sentences={props.sentences}
+              currentUser={props.currentUser}
+            />
+          )
         ) : (
           <div className={styles.centeringDiv}>
             <div className={styles.wrapper}>
