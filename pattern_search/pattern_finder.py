@@ -46,8 +46,11 @@ def validate_arguments(args,parser):
     if not args.corpus:
         print('Please provide a corpus to search in.')
         success = False
-    if not (args.words or args.morphemes or args.discont):
-        print('Default: Treating the entire sentence as pattern.')
+    if not (args.words or args.morphemes or args.discont or args.sentence):
+        print('Please provide a flag for search type: entire sentence -l, '
+              'one or more continuous words -w, '
+              'one or more continuous morphemes -m.')
+        success = False
     if not success:
         print('\n')
         parser.print_help()
@@ -74,7 +77,7 @@ def normalize(s):
 The pattern to match is the entire sentence.
 '''
 def get_sentences_pattern(string, indices):
-    return string[indices[0]:indices[1]+1]
+    return r'^'+string[indices[0]:indices[1]+1]+r'$'
 
 '''
 The pattern to match is one or more contiguous words.
