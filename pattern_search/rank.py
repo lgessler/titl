@@ -48,7 +48,7 @@ def argmax(keys, f):
     return max(keys, key=f)
 
 def similarity1(d,q):
-    score = int(SIM1[d[1]].strip())
+    score = float(SIM1[d[1]].strip())
     return score
 
 def similarity2(d1,d2):
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         '''))
     parser.add_argument('-i', '--input',
                         help='input file SENTENSE TAB SCORE')
-    parser.add_argument('-l', '--lambd',
+    parser.add_argument('-l', '--lambd',type=float,
                         help='A number between 0 and 1, 0 means less diversity, 1 means more diversity')
     args = parser.parse_args()
     main(args)
