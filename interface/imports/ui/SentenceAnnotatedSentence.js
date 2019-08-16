@@ -8,13 +8,7 @@ import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
 import grey from "@material-ui/core/colors/grey";
 
-import SpanAnnotation from "./SpanAnnotation";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import Paper from "@material-ui/core/Paper";
-import {Meteor} from "meteor/meteor";
+import { Meteor } from "meteor/meteor";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 
@@ -60,8 +54,13 @@ class SentenceAnnotatedSentence extends Component {
   };
 
   toggleRelevant(e) {
-    this.setState({relevant: !this.state.relevant});
-    Meteor.call("sentences.addAnnotation", this.props.sentence._id, "relevant", !this.state.relevant);
+    this.setState({ relevant: !this.state.relevant });
+    Meteor.call(
+      "sentences.addAnnotation",
+      this.props.sentence._id,
+      "relevant",
+      !this.state.relevant
+    );
   }
 
   render() {
@@ -78,10 +77,7 @@ class SentenceAnnotatedSentence extends Component {
               size="small"
               className={this.props.classes.remove}
               onClick={() => {
-                Meteor.call(
-                  "sentences.remove",
-                  this.props.sentence._id
-                );
+                Meteor.call("sentences.remove", this.props.sentence._id);
               }}
             >
               <CancelIcon />

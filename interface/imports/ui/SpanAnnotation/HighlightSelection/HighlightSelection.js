@@ -18,10 +18,9 @@ const styles = theme => ({
 
 class HighlightSelection extends Component {
   handleCheck = (beginIdx, checked) => {
-    const s = this.props.sentence.spanAnnotations.filter(
-      e => e.begin === beginIdx
-    )[0];
-    s.checked = checked;
+    this.props.sentence.spanAnnotations = this.props.sentence.spanAnnotations.map(
+      e => (e.begin === beginIdx ? { ...e, checked } : e)
+    );
   };
 
   render() {

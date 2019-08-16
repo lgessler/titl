@@ -1,14 +1,12 @@
 import React, { Component } from "react";
 
-import CancelIcon from "@material-ui/icons/Cancel";
-import IconButton from "@material-ui/core/IconButton";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import grey from "@material-ui/core/colors/grey";
-import SpanAnnotSentence from "./SpanAnnotSentence";
+import SpanAnnotSentence from "./SpanAnnotCardContent/SpanAnnotSentence";
 import HighLightSelection from "./HighlightSelection/HighlightSelection";
+import SpanAnnotCardHeader from "./SpanAnnotCardContent/SpanAnnotCardHeader";
+import SpanAnnotCardDelete from "./SpanAnnotCardContent/SpanAnnotCardDelete";
 
 const styles = theme => ({
   card: {
@@ -19,17 +17,6 @@ const styles = theme => ({
     "&:hover $highlightSelection": {
       visibility: "visible"
     }
-  },
-  subtitle: {
-    position: "absolute",
-    right: theme.spacing(7),
-    top: theme.spacing(2),
-    color: grey["700"]
-  },
-  remove: {
-    position: "absolute",
-    right: "-15px",
-    top: "-15px"
   },
   highlightSelection: {
     paddingTop: theme.spacing(5),
@@ -57,7 +44,7 @@ class SpanAnnotCard extends Component {
   }
 
   // Returns HTML for Displaying SpanAnnotatedSentence
-  computeChildren() {
+  computeChildren = () => {
     // Decompose SpanAnnotatedSentence Prop
     let { sentence, spanAnnotations } = this.props.sentence;
 
@@ -71,8 +58,7 @@ class SpanAnnotCard extends Component {
         value: "",
         begin: this.state.selBegin,
         end: this.state.selEnd,
-        selected: true,
-        checked: false
+        selected: true
       });
 
     // Sort All Annotations Based on Begin
@@ -87,7 +73,7 @@ class SpanAnnotCard extends Component {
       this.setState({ selBegin: 0, selEnd: 0 });
     };
 
-    for (let { value, begin, end, selected } of spanAnnotations.filter(
+    for (let { type, begin, end, selected } of spanAnnotations.filter(
       x => x.type || x.selected
     )) {
       children.push(sentence.slice(lastIndex, begin));
@@ -98,7 +84,15 @@ class SpanAnnotCard extends Component {
           begin={begin}
           end={end}
           key={begin}
-          type={value}
+          type={type}
+          checked={
+            this.props.sentence.spanAnnotations.filter(
+              e => e.begin === begin
+            )[0] &&
+            this.props.sentence.spanAnnotations.filter(
+              e => e.begin === begin
+            )[0].checked
+          }
           clearSelected={selected && begin !== end && clearSelected}
         />
       );
@@ -108,12 +102,7 @@ class SpanAnnotCard extends Component {
 
     // Return The Altered Array
     return children;
-  }
-
-  // Clear User's Selecting
-  clearSelection() {
-    window.getSelection().empty();
-  }
+  };
 
   handleSelection = () => {
     // Grabs Distance from Beginning to Node, if it Exists, Else 0
@@ -190,7 +179,13 @@ class SpanAnnotCard extends Component {
     this.clearSelection();
   };
 
-  toggleDelete = deleteHidden => this.setState({ deleteHidden });
+  // Clear User's Selecting
+  clearSelection() {
+    window.getSelection().empty();
+  }
+
+  toggleDelete = () =>
+    this.setState({ deleteHidden: !this.state.deleteHidden });
 
   render() {
     return (
@@ -198,37 +193,19 @@ class SpanAnnotCard extends Component {
         className={this.props.classes.card}
         onMouseUp={this.handleSelection}
         onMouseDown={this.clearSelection}
-        onMouseEnter={() => this.toggleDelete(false)}
-        onMouseLeave={() => this.toggleDelete(true)}
+        onMouseEnter={this.toggleDelete}
+        onMouseLeave={this.toggleDelete}
       >
         <Card className={this.props.classes.highlightSelection}>
           <HighLightSelection sentence={this.props.sentence} />
         </Card>
         <CardContent>
-          {this.state.deleteHidden ? null : (
-            <IconButton
-              size="small"
-              className={this.props.classes.remove}
-              onClick={() =>
-                Meteor.call("sentences.remove", this.props.sentence._id)
-              }
-            >
-              <CancelIcon />
-            </IconButton>
-          )}
-          <Typography
-            variant="subtitle2"
-            className={this.props.classes.subtitle}
-          >
-            {"Sentence #" + this.props.sentence.readableId}
-          </Typography>
-          <div
-            className="sentence"
-            onKeyUp={this.handleSelection}
-            onKeyDown={this.clearSelection}
-          >
-            {this.computeChildren()}
-          </div>
+          <SpanAnnotCardDelete
+            deleteHidden={this.state.deleteHidden}
+            id={this.props.sentence._id}
+          />
+          <SpanAnnotCardHeader sentenceNum={this.props.sentence.readableId} />
+          <div className="sentence">{this.computeChildren()}</div>
         </CardContent>
       </Card>
     );

@@ -1,7 +1,7 @@
 {
   "public": {
     "spanAnnotationTypes": ["A", "B", "C"],
-    "annotationLevel": "sentence",
+    "annotationLevel": "sentenc",
     "defaultUrl": "http://localhost:5000"
   }
 }
