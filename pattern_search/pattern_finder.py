@@ -19,6 +19,7 @@ from myfuzzywuzzy import fuzz
 from myfuzzywuzzy import process
 
 
+
 # REPORT FORMATTING PARAMETERS ################################################
 
 MAX_LINE_WIDTH = 120
@@ -105,6 +106,16 @@ def get_discont_span_pattern(string, list_of_index_pairs,fuzzy=False):
         return r''+pattern+r'.*'
     return substrs
 
+
+def compareLine(line1, line2):
+    '''Compares multiple word segments or whole sentences.'''
+    #do not penalize free word order
+    token_score = fuzz.token_sort_ratio(line1, line2)
+    #do not penalize repetitions
+    set_score = fuzz.token_set_ratio(line1, line2)
+    return (token_score/2) + (set_score)/2
+
+
 def simpleMatch(corpus, pattern):
     results = []
     regex = re.compile(r''+pattern,re.I)
@@ -116,7 +127,7 @@ def simpleMatch(corpus, pattern):
             for m in matches:
                 for span in m.regs:
                     match_spans.append(span)
-            results.append((norm_ln,match_spans))
+            results.append((norm_ln,100))
             print(norm_ln)
     return results
 
@@ -124,21 +135,20 @@ def simpleMatch(corpus, pattern):
 def fuzzyMatch(corpus, pattern):
     matches = []
     for ln in corpus:
-        norm_ln = normalize(ln)
-        partialRatio = fuzz.partial_ratio(pattern, norm_ln)
-        # partialRatioResult returns the same number as partialRatio but also the indices
-        # of where the match was found.
-        partialRatioResult = fuzz.custom_get_blocks(pattern,norm_ln)
-        tokenSetRatio = fuzz.token_set_ratio(pattern, norm_ln)
+        score = compareLine(ln,pattern)
+    # partialRatioResult returns the same number as partialRatio but also the indices
+    # of where the match was found.
+    #partialRatioResult = fuzz.custom_get_blocks(pattern,norm_ln)
+    #tokenSetRatio = fuzz.token_set_ratio(pattern, norm_ln)
 
-        if partialRatio >= 80:
-            matches.append(ln)
-            print(partialRatio, norm_ln.strip('\n'))
+    if score >= 80:
+        matches.append((ln,score))
+        print(partialRatio, norm_ln.strip('\n'))
 
-        elif tokenSetRatio >= 80:
-            print("----------- token set ratio ------------")
-            matches.append(ln)
-            print(tokenSetRatio, norm_ln.strip('\n'))
+#    elif tokenSetRatio >= 80:
+#        print("----------- token set ratio ------------")
+#        matches.append(ln)
+#        print(tokenSetRatio, norm_ln.strip('\n'))
             
     return matches
 
@@ -159,7 +169,7 @@ def split(sentence, idcs):
     rest_of_line = sentence[:idcs[0]] + ' ' + sentence[idcs[1]:]
     return [block, rest_of_line]
 
-def weightRestOfLine(unselected_corpus_line, unselected_input):
+def compareLines(unselected_corpus_line, unselected_input):
     #do not penalize free word order
     token_score = fuzz.token_sort_ratio(unselected_corpus_line, unselected_input)
     #do not penalize repetitions
@@ -168,7 +178,7 @@ def weightRestOfLine(unselected_corpus_line, unselected_input):
 
 def weightedFuzzymatch(split_corpusline, split_queryline):
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
-    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    unselected_score = compareLines(split_corpusline[1], split_queryline[1])
     return weightSubunits(selected_score, unselected_score)
 
 def weightedSimplematch(split_corpusline, split_queryline):
@@ -176,7 +186,7 @@ def weightedSimplematch(split_corpusline, split_queryline):
     selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
     if selected_score < 100:
         return 0
-    unselected_score = weightRestOfLine(split_corpusline[1], split_queryline[1])
+    unselected_score = compareLines(split_corpusline[1], split_queryline[1])
     return weightSubunits(selected_score, unselected_score)
 
 def weightSubunits(selected_match_score, unselected_match_score):
@@ -189,27 +199,33 @@ def weightSubunits(selected_match_score, unselected_match_score):
     weight2 = unselected_match_score * unselected_weight
     return weight1 + weight2
 
+def weightedFuzzymatch(split_corpusline, split_queryline):
+    selected_score = fuzz.ratio(split_corpusline[0], split_queryline[0])
+    unselected_score = compareLine(split_corpusline[1], split_queryline[1])
+    return weightSubunits(selected_score, unselected_score)
 
-def weightedMatch(corpus, input_string, query_idcs, fuzzy=True):
+
+def weightedMatch(corpus, input_string, query, fuzzy):
     '''split, match splits, and weight score.
     Returns list of match sentences'''
     weighted_matches = []
-    split_string = split(input_string,query_idcs)
-    #[(corpus line, ratio, (matched_block_indices))]
-    partial_matches = process.extract(split_string[0], corpus, scorer=fuzz.partial_ratio)
-    for match in partial_matches:
-        weighted_score = 0
-        if match[1] >= 80:
-            if fuzzy:
-                split_match = split(match[0], match[2])
-                weighted_score = weightedFuzzymatch(split_match, split_string)
-            else:
-                norm_match = match[0].lower()
-                split_match = split(norm_match, match[2])
-                weighted_score = weightedSimplematch(split_match, split_string)
-
+    if fuzzy:
+        split_string = split(input_string, get_indices(args))
+        #[(corpus line, ratio, (matched_block_indices))]
+        partial_matches = process.extract(query, corpus, scorer=fuzz.partial_ratio)
+        for match in partial_matches:
+            if match[1] >= 50:
+                split_line = split(match[0], match[2])
+                weighted_score = weightedFuzzymatch(split_line, split_string)
+                if weighted_score >= 80:
+                    weighted_matches.append(match[0], weighted_score)
+    else:
+        span_matches = simpleMatch(corpus, query)
+        for match in span_matches:
+            line_similarity = compareLine(input_string, span_matches[0])
+            weighted_score = weight(span_matches[1],line_similarity)
             if weighted_score >= 80:
-                weighted_matches.append(match[0])
+                weighted_matches.append(span_matches[0],weighted_score)
                 print(weighted_score, match[0].strip('\n'))
 
     return weighted_matches
@@ -233,14 +249,14 @@ def main(args):
         p = get_sentences_pattern(s,indices[0])
     if args.fuzzy:
         if args.sentence:
-            matches = fuzzyMatch(corpus, s)
+            matches = fuzzyMatch(corpus, p)
         else:
-            matches = weightedmatch(corpus, s, args.indices)
+            matches = weightedMatch(corpus, p, args.indices,args.fuzzy)
     else:
         if args.sentence:
-            matches = simpleMatch(corpus, s)
+            matches = simpleMatch(corpus, p)
         else:
-            matches = weightedmatch(corpus, s, args.indices, fuzzy=False)
+            matches = weightedMatch(corpus, p, args.indices, fuzzy=False)
 #    print("testing process function from fuzzywuzzy")
 #    tryProcess(corpus, s)
     # matches = []
@@ -270,7 +286,9 @@ if __name__ == '__main__':
         '''),
         epilog=textwrap.dedent('''\
         Examples:
-            %(prog)s STRING CORPUS   # take a string and return matches from the corpus
+            %(prog)s -s hiiko -i "0-2" -c ../../Arapaho-test.txt -o output.txt -m # take a sentence, indices
+             for the query substring, and return matches from the corpus   # search for the morpheme
+             'hii' in the file Arapaho-test.txt
         '''))
     parser.add_argument('-s', '--string',
                         help='string in which the pattern was highlighted')
@@ -282,7 +300,7 @@ if __name__ == '__main__':
                         help='search for one or more contiguous morphemes')
     parser.add_argument('-d', '--discont', action='store_true',
                         help='search for a discontinuous span')
-    parser.add_argument('-l', '--sentence', action='store_false',
+    parser.add_argument('-l', '--sentence', action='store_true',
                         help='search for an entire sentence')
     parser.add_argument('-c', '--corpus',
                         help='corpus to find matches in')

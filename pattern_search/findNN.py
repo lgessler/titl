@@ -40,6 +40,7 @@ def compute():
     print(request.json)
     if request.json['sentences']:
         sentences = [sentence['sentence'] for sentence in request.json['sentences'] if sentence['annotations']['relevant']]
+        negative_sentences = [sentence['sentence'] for sentence in request.json['sentences'] if not sentence['annotations']['relevant']]
         given_lines += sentences
     else:
         raise Exception("no input")
@@ -49,15 +50,19 @@ def compute():
     assert len(given_lines) ==  len(vectors)
 
     cosine_similarities = {}
-    distances, indexes = tree.query(np.array([np.mean(vectors, axis=0)]), k=args.k, sort_results=True)
+    distances, indexes = tree.query(np.array([np.mean(vectors, axis=0)]), k=args.k * 10, sort_results=True)
     
     sorted_cosine_simi = list(zip(indexes[0], distances[0]))
 
     sent_dict = {}
     for (sent_index, cosine_value) in sorted_cosine_simi:
-        print(sent_index, cosine_value)
+        if len(sent_dict.keys()) == args.k:
+            break
         sent = all_lines[sent_index]
-        sent_dict[sent] = cosine_value
+        print(sent)
+        print(cosine_value)
+        if sent not in negative_sentences:
+            sent_dict[sent] = cosine_value
 
     return jsonify(sent_dict)
 
@@ -66,7 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("--all_sents", type=str, default='ara_raw.lower.txt')
     parser.add_argument("--all_sents_vectors", type=str, default='ara_sent2vec.lower.vec')
     parser.add_argument("--output", type=str, default=None)
-    parser.add_argument("--k", type=int, default=20)
+    parser.add_argument("--k", type=int, default=7)
     parser.add_argument("--dim", type=int, default=700)
     args = parser.parse_args()
 

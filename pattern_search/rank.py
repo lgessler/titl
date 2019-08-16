@@ -35,6 +35,9 @@ def mmr_sorted(docs, q, lambda_, similarity1, similarity2):
     selected = collections.OrderedDict()
     while set(selected) != docs:
         remaining = docs - set(selected)
+        # What are multiplications supposed to be doing? Is the interpreter interpreting the operator * correctly?
+        # It expects that similarity scores are integers?.. But why would they be?
+        # I must be missing something here.
         mmr_score = lambda x: lambda_*similarity1(x, q) - (1-lambda_)*max([similarity2(x, y)
                                                                            for y in set(selected)-{x}] or [0])
         next_selected = argmax(remaining, mmr_score)
