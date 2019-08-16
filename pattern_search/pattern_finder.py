@@ -217,10 +217,10 @@ def weightedMatch(corpus, input_string, query, fuzzy):
                 if weighted_score >= 80:
                     weighted_matches.append((match[0], weighted_score))
     else:
-        span_matches = simpleMatch(corpus, query)
+        span_matches = simpleMatch(corpus, input_string)
         for match in span_matches:
             line_similarity = compareLine(input_string, span_matches[0])
-            weighted_score = weight(span_matches[1],line_similarity)
+            weighted_score = weight(match[1],line_similarity)
             if weighted_score >= 80:
                 weighted_matches.append((span_matches[0],weighted_score))
                 print(weighted_score, match[0].strip('\n'))
