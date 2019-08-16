@@ -110,15 +110,6 @@ def get_discont_span_pattern(string, list_of_index_pairs,fuzzy=False):
     return substrs
 
 
-def compareLine(line1, line2):
-    '''Compares multiple word segments or whole sentences.'''
-    #do not penalize free word order
-    token_score = fuzz.token_sort_ratio(line1, line2)
-    #do not penalize repetitions
-    set_score = fuzz.token_set_ratio(line1, line2)
-    return (token_score/2) + (set_score)/2
-
-
 def simpleMatch(corpus, pattern):
     results = []
     regex = re.compile(r''+pattern,re.I)
@@ -207,15 +198,15 @@ def weightedMatch(corpus, input_string, query, fuzzy):
     Returns list of match sentences'''
     weighted_matches = []
     if fuzzy:
-        split_string = split(input_string, get_indices(args))
+        split_string = split(input_string, get_indices(args)[0])
         #[(corpus line, ratio, (matched_block_indices))]
-        partial_matches = process.extract(query, corpus, scorer=fuzz.partial_ratio)
-        for match in partial_matches:
-            if match[1] >= 50:
-                split_line = split(match[0], match[2])
+        for ln in corpus:
+            partial_match = fuzz.custom_get_blocks(ln,query)
+            if partial_match[0] >= 50:
+                split_line = split(ln, match[1])
                 weighted_score = weightedFuzzymatch(split_line, split_string)
-                if weighted_score >= 80:
-                    weighted_matches.append((match[0], weighted_score))
+                if weighted_score >= 60:
+                    weighted_matches.append((ln, weighted_score))
     else:
         span_matches = simpleMatch(corpus, input_string)
         for match in span_matches:

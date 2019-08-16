@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import sys
 import functools
 
-from fuzzywuzzy.string_processing import StringProcessor
+from myfuzzywuzzy.string_processing import StringProcessor
 
 
 PY3 = sys.version_info[0] == 3

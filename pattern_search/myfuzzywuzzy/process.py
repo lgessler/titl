@@ -119,7 +119,7 @@ def extractWithoutOrder(query, choices, processor=default_processor, scorer=defa
                 yield (choice, score)
 
 
-def extract(query, choices, processor=default_processor, scorer=default_scorer, limit=5):
+def extract(query, choices, processor=default_processor, scorer=default_scorer, limit=500):
     """Select the best match in a list or dictionary of choices.
 
     Find best matches in a list or dictionary of choices, return a
@@ -147,7 +147,7 @@ def extract(query, choices, processor=default_processor, scorer=default_scorer, 
             By default, fuzz.WRatio() is used and expects both query and
             choice to be strings.
         limit: Optional maximum for the number of elements returned. Defaults
-            to 5.
+            to 500.
 
     Returns:
         List of tuples containing the match and its score.

@@ -114,7 +114,7 @@ def custom_get_blocks(s1, s2):
             return 100
         else:
             scores.append(r)
-            results.append((int(r*100),long_start,long_end))
+            results.append((int(r*100),[long_start,long_end]))
     max_index = scores.index(max(scores))
     return results[max_index]
 
