@@ -1,12 +1,12 @@
 {
   "sentences": [
     {
-      "relevant": true,
-      "text": "he'ih'ii3ei'i"
+      "sentence": "he'ih'ii3ei'i",
+      "annotations": {"relevant": true}
     },
     {
-      "relevant": true,
-      "text": "nih'iiwoowo'tenou'u nuhu' noono"
+      "sentence": "nih'iiwoowo'tenou'u nuhu' noono",
+      "annotations": {"relevant": true}
     }
   ]
 }
