@@ -68,8 +68,8 @@ def compute():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--all_sents", type=str, default='ara_raw.lower.txt')
-    parser.add_argument("--all_sents_vectors", type=str, default='ara_sent2vec.lower.vec')
+    parser.add_argument("--all_sents", type=str, default='data/ara_raw.lower.txt')
+    parser.add_argument("--all_sents_vectors", type=str, default='data/ara_sent2vec.lower.vec')
     parser.add_argument("--output", type=str, default=None)
     parser.add_argument("--k", type=int, default=7)
     parser.add_argument("--dim", type=int, default=700)
