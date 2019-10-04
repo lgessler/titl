@@ -1,2 +1,4 @@
 conllu
 numpy
+sklearn
+scipy
