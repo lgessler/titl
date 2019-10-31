@@ -1,0 +1,3 @@
+[submodule "embeddings/eval/interchangeability"]
+	path = embeddings/eval_datasets/interchangeability
+	url = https://github.com/danielhers/interchangeability.git
