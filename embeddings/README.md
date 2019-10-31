@@ -26,8 +26,8 @@ _(Refer to word2vecf/README.word2vecf.txt for more details.)_
 
 ```bash
 python conllu_to_word_contexts.py \
-        --train data/en_gum-ud-train.conllu \
-        --outfile output/en_gum-ud-train.upostag.context \
+        --train data/en_combined_all.conllu \
+        --outfile output/en_combined_all.upostag.context \
         --context-tags upostag \
         --context-window-size 2
 ```
@@ -36,9 +36,9 @@ python conllu_to_word_contexts.py \
 
 ```bash
 ./word2vecf/count_and_filter \
-        -train output/en_gum-ud-train.upostag.context \
-        -cvocab output/en_gum-ud-train.upostag.cv \
-        -wvocab output/en_gum-ud-train.upostag.wv \
+        -train output/en_combined_all.upostag.context \
+        -cvocab output/en_combined_all.upostag.cv \
+        -wvocab output/en_combined_all.upostag.wv \
         -min-count 50
 ```
 
@@ -46,23 +46,23 @@ python conllu_to_word_contexts.py \
 
 ```bash
 ./word2vecf/word2vecf \
-        -train "output/en_gum-ud-train.upostag.context" \
-        -cvocab "output/en_gum-ud-train.upostag.cv" \
-        -wvocab "output/en_gum-ud-train.upostag.wv" \
+        -train "output/en_combined_all.upostag.context" \
+        -cvocab "output/en_combined_all.upostag.cv" \
+        -wvocab "output/en_combined_all.upostag.wv" \
         -size 200 \
         -negative 15 \
         -threads 4 \
         -iters 10 \
-        -output "output/en_gum-ud-train.upostag.vecs" \
-        -dumpcv "output/en_gum-ud-train.upostag.context_vecs"
+        -output "output/en_combined_all.upostag.vecs" \
+        -dumpcv "output/en_combined_all.upostag.context_vecs"
 ```
 
 4\. Convert the vectors so they're numpy-friendly:
 
 ```bash
 python ./scripts/vecs2nps.py \
-        output/en_gum-ud-train.upostag.vecs \
-        output/en_gum-ud-train.upostag.npvecs
+        output/en_combined_all.upostag.vecs \
+        output/en_combined_all.upostag.npvecs
 ```
 
-5\. Your NP-ready embeddings will now be in `output/en_gum-ud-train.upostag.npvecs.npy`.
+5\. Your NP-ready embeddings will now be in `output/en_combined_all.upostag.npvecs.npy`.
