@@ -28,22 +28,30 @@ def eval_simlex_999(vecs):
     # just take the SimLex999 score
     simlex_scores = {k: v["SimLex999"] for k, v in simlex_scores.items()}
 
-    similarities = {(w1, w2): cosine_similarity(vecs[w1], vecs[w2])
-                    for (w1, w2) in simlex_scores.keys()
-                    if w1 in vecs and w2 in vecs}
-    print(f"Able to evaluate {len(similarities)} out of {len(simlex_scores)}"
-          f" ({len(similarities)/len(simlex_scores) * 100}%) of SimLex-999 pairs")
+    # OOV vector: just take the average of the whole thing
+    unk_vector = np.mean(list(vecs.values()), axis=0)
 
-    simlex_scores = {(w1, w2): v
-                     for ((w1, w2), v) in simlex_scores.items()
-                     if w1 in vecs and w2 in vecs}
+    # map every word-pair to its cosine similarity according to the vectors being evaluated
+    pred_similarities = {(w1, w2): cosine_similarity(
+                             vecs[w1] if w1 in vecs else unk_vector, 
+                             vecs[w2] if w2 in vecs else unk_vector
+                         )
+                         for (w1, w2) in simlex_scores.keys()}
 
-    pred_sorted_pairs = [x[0] for x in sorted(list(similarities.items()), key=lambda x: float(x[1]), reverse=True)]
-    gold_sorted_pairs = [x[0] for x in sorted(list(simlex_scores.items()), key=lambda x: float(x[1]), reverse=True)]
-    pair_indexes = {k: i for i, k in enumerate(gold_sorted_pairs)}
+    # get the true similarities
+    gold_similarities = {(w1, w2): v for ((w1, w2), v) in simlex_scores.items()}
 
-    pred_rank = [pair_indexes[k] for k in pred_sorted_pairs]
-    gold_rank = [pair_indexes[k] for k in gold_sorted_pairs]
+    # sort word pairs in order of decreasing similarity for both gold and pred,
+    pred_sorted_similarities = list(sorted(list(pred_similarities.items()), key=lambda x: float(x[1]), reverse=True))
+    pred_sorted_pairs = [x[0] for x in pred_sorted_similarities]
+    gold_sorted_similarities = list(sorted(list(gold_similarities.items()), key=lambda x: float(x[1]), reverse=True))
+    gold_sorted_pairs = [x[0] for x in gold_sorted_similarities]
+
+    # set up a word pair -> rank mapping for the gold ranking
+    pair_indexes = {word_pair: rank for rank, word_pair in enumerate(gold_sorted_pairs)}
+
+    pred_rank = [pair_indexes[word_pair] for word_pair in pred_sorted_pairs]
+    gold_rank = [pair_indexes[word_pair] for word_pair in gold_sorted_pairs]
 
     rho, p = spearmanr(pred_rank, gold_rank)
     print("SimLex-999 scores:")
