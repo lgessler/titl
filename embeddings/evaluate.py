@@ -9,9 +9,10 @@ def cosine_similarity(u, v):
 
 
 def read_simlex_999():
-    with open('eval/SimLex-999/SimLex-999.txt', 'r') as f:
+    with open('eval_datasets/SimLex-999/SimLex-999.txt', 'r') as f:
         lines = [x.strip().split("\t") for x in f.readlines()][1:]
 
+    # every line is a word-pair followed by various metrics on the pair
     return {(l[0], l[1]): {"POS": l[2],
                            "SimLex999": l[3],
                            "conc(w1)": l[4],
@@ -48,7 +49,6 @@ def eval_simlex_999(vecs):
     print("SimLex-999 scores:")
     print(f"  Spearman's rho = {rho}")
     print(f"               p = {p}")
-
 
 
 def read_vecs(filepath):
