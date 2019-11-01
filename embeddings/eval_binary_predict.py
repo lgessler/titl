@@ -15,7 +15,6 @@ def read_vecs(filepath):
     vecs = [l.split(" ") for l in lines[1:]]
     vecs = {x[0]: np.array([float(y) for y in x[1:]]) for x in vecs}
 
-    print(f"{filepath}: loaded {count} vectors with dim {dim}")
     return vecs
 
 
@@ -45,26 +44,31 @@ def vectorize(sentences, word_vecs):
     sentence_vectors = []
     unk_vector = np.mean(list(word_vecs.values()), axis=0)
     for sentence in tqdm(sentences):
-        word_vecs = [word_vecs[token['form']] if token['form'] in word_vecs.keys() else unk_vector for token in sentence]
-        avg_word_vec = np.mean(word_vecs, axis=0)
+        words = [word_vecs[token['form']] if token['form'] in word_vecs else unk_vector for token in sentence]
+        avg_word_vec = np.mean(words, axis=0)
         sentence_vectors.append(avg_word_vec)
     return sentence_vectors
 
+# https://github.com/PrashantRanjan09/Improved-Word-Embeddings
 
 def eval(args):
     print("loading sentences...", end=" ")
     sentences = conllu.parse(open(args.conllu_file, 'r').read())
-    print(f"loaded {len(sentences)} sentences from {args.conllu_file}.")
+    print(f"loaded {len(sentences)} sentences from {args.conllu_file}.", flush=True)
 
     print("classifying sentences...", end=" ")
     sentence_classes = classify(sentences, args.classify_by)
-    print("done.")
+    print("done.", flush=True)
+
+    print("reading vectors...", end=" ")
+    word_vecs = read_vecs(args.vecs)
+    print("done.", flush=True)
 
     print("vectorizing sentences...", end=" ")
-    sentence_vectors = vectorize(sentences, read_vecs(args.vecs))
-    print("done.")
+    sentence_vectors = vectorize(sentences, word_vecs)
+    print("done.", flush=True)
 
-    X, y, X_test, y_test = sklearn.model_selection.train_test_split(sentence_vectors, sentence_classes, test_size=0.2)
+    X, X_test, y, y_test = sklearn.model_selection.train_test_split(sentence_vectors, sentence_classes, test_size=0.2)
 
     m = LogisticRegression()
     m.fit(X, y)
