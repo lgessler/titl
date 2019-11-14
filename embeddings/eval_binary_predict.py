@@ -4,7 +4,6 @@ import conllu
 from collections import defaultdict
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier
-from tqdm import tqdm
 import sklearn
 
 
@@ -77,7 +76,7 @@ def classify(sentences, strategy):
 def vectorize(sentences, word_vecs):
     sentence_vectors = []
     unk_vector = np.mean(list(word_vecs.values()), axis=0)
-    for sentence in tqdm(sentences):
+    for sentence in sentences:
         words = [word_vecs[token['form']] if token['form'] in word_vecs else unk_vector for token in sentence]
         avg_word_vec = np.mean(words, axis=0)
         sentence_vectors.append(avg_word_vec)
