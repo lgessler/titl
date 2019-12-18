@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import numpy as np
 import logging
 import spacy
@@ -7,41 +6,57 @@ from spacy.tokenizer import Tokenizer
 
 
 class SentenceEmbeddingKnn:
-    def __init__(self, sentences, numpy_vector_filepath):
-        logging.info(f"Attempting to loading vectors from {numpy_vector_filepath}")
-        with open(numpy_vector_filepath, 'r') as f:
-            vectors = np.loadtxt(f)
-        logging.info("Vectors loaded.")
+    def _filter_short_sentences(self, sentences, min_length):
+        return [sentence for sentence in sentences if len(sentence) > min_length]
 
-        self._vectors = vectors
-        self.sentences = sentences
+    def __init__(self, sentences, word_vectors, k, sentence_min_length=3):
+        self._k = k
 
+        # tokenizer setup
+        logging.info("Initializing embedder")
+        logging.info("Setting up tokenizer")
         nlp = spacy.load("en_core_web_sm")
         nlp.tokenizer = Tokenizer(nlp.vocab)
         self._tokenizer = nlp
 
-        logging.info("Computing sentence vectors...")
-        self.sentence_vectors =
+        logging.info("Generating sentence vectors for corpus")
+        assert type(sentences[0]) != str, "Corpus must already be tokenized."
+        long_sentences = self._filter_short_sentences(sentences, sentence_min_length)
+        logging.info(f"Filtered out {len(sentences) - len(long_sentences)} which were under the minimum length of {sentence_min_length}")
+        self.sentences = long_sentences
+        self._word_vectors = word_vectors
+        self._UNK_WORD = np.mean(np.array(list(word_vectors.values())), axis=0) # define unknown word vector as the mean of all vectors
+        self.sentence_vectors = self.embed(self.sentences)
 
-        self._tree = KDTree(vectors)
+        self._tree = KDTree(self.sentence_vectors)
         logging.info("KDTree constructed.")
 
     # np.array([np.mean(vectors, axis=0)]), k=args.k * 10, sort_results=True
 
     def _tokenize(self, input_string):
-        return self._tokenizer(input_string)
+        doc = self._tokenizer(input_string)
+        tokens = list(map(lambda x: getattr(x, 'text'), doc[:]))
+        return tokens
 
-    def embed(self, input_sentence):
-        pass
+    def _embed_word(self, word):
+        return self._word_vectors[word] if word in self._word_vectors else self._UNK_WORD
 
-    def knn(self, sentences, tokenize=True):
-        ...
-#        if tokenize:
-#
-#        sentences = []
-#        for sentence in sentences:
-#            if tokenize:
-#                sentence = self.tokenize(sentence)
-#
+    def embed(self, sentences):
+        sentence_vectors = []
+        for sentence in sentences:
+            avg_word_vec = np.mean(list(map(self._embed_word, sentence)), axis=0)
+            sentence_vectors.append(avg_word_vec)
 
+        return sentence_vectors
 
+    def knn(self, sentences):
+        sentences = [self._tokenize(sentence) for sentence in sentences]
+        sentence_vectors = self.embed(sentences)
+        distances, indices = self._tree.query(sentence_vectors, k=self._k * 10)
+        return distances, indices
+
+    def get_sentence_by_index(self, i):
+        if 0 <= i < len(self.sentences):
+            return " ".join(self.sentences[i])
+        else:
+            raise ValueError(f"Index {i} is greater than len(self.sentences) = {len(self.sentences)}")

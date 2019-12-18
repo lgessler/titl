@@ -91,16 +91,19 @@ function App(props) {
         />
 
         {props.currentUser ? (
-          Meteor.settings.public.annotationLevel === "sentence" ? (
+          Meteor.settings.public.annotationLevel !== "span" ? (
             <InteractiveQuerySession
               sentences={props.sentences}
               currentUser={props.currentUser}
             />
           ) : (
-            <SentenceList
-              sentences={props.sentences}
-              currentUser={props.currentUser}
-            />
+            <>
+              <SentenceList
+                sentences={props.sentences}
+                currentUser={props.currentUser}
+              />
+              <AddSentence />
+            </>
           )
         ) : (
           <div className={styles.centeringDiv}>
@@ -109,7 +112,6 @@ function App(props) {
             </div>
           </div>
         )}
-        <AddSentence />
       </ThemeProvider>
     </div>
   );

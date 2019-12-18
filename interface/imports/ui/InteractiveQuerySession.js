@@ -78,13 +78,9 @@ function SentenceToggle(props) {
 
 export default function InteractiveQuerySession(props) {
   [inputSentence, setInputSentence] = React.useState("");
-  [sentencesSeen, setSentencesSeen] = React.useState([]);
 
   const classes = useStyles();
-  const unseenSentences = props.sentences.filter(s => sentencesSeen.indexOf(s) === -1);
-  console.log(unseenSentences)
   const saveSentence = () => {
-    setSentencesSeen(sentencesSeen.concat([inputSentence]));
     setInputSentence("");
     Meteor.call("sentences.insert", {
       sentence: inputSentence,
@@ -93,7 +89,6 @@ export default function InteractiveQuerySession(props) {
     });
   };
   const submitAnnotations = () => {
-    setSentencesSeen(sentencesSeen.concat(unseenSentences));
     Meteor.call("sentences.populateFromQuery");
   };
 
@@ -102,7 +97,7 @@ export default function InteractiveQuerySession(props) {
       <Card className={classes.card}>
         <DialogContent>
           <DialogContentText>
-            Enter an example sentence in Arapaho.
+            Enter an example sentence in English.
           </DialogContentText>
           <TextField autoFocus
                      margin="dense"
